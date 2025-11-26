@@ -76,9 +76,15 @@ export default function MyPage() {
                 <h2 className="mb-1 text-xl font-bold text-foreground">{user.name}</h2>
                 <p className="mb-2 text-sm text-muted-foreground">{user.email}</p>
                 {user.team && (
-                  <Badge variant="secondary" className="text-xs">
-                    {user.team}
-                  </Badge>
+                  <Link href="/team">
+                    <Badge
+                      variant="secondary"
+                      className="cursor-pointer text-xs transition-colors hover:bg-primary/10 hover:text-primary"
+                    >
+                      {user.team}
+                      <ChevronRight className="ml-1 h-3 w-3" />
+                    </Badge>
+                  </Link>
                 )}
               </div>
             </div>
@@ -87,6 +93,21 @@ export default function MyPage() {
               <span className="text-muted-foreground">가입일</span>
               <span className="font-medium text-foreground">{user.joinDate}</span>
             </div>
+            {user.team && (
+              <>
+                <Separator className="my-4" />
+                <Link href="/team">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                  >
+                    내 팀 보기
+                    <ChevronRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
+              </>
+            )}
           </CardContent>
         </Card>
 

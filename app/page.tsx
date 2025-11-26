@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 
 export default function LandingPage() {
   return (
@@ -26,13 +25,6 @@ export default function LandingPage() {
           <h1 className="mb-3 text-4xl font-bold tracking-tight text-foreground">
             TeamUp
           </h1>
-
-          {/* AI Powered 배지 */}
-          <div className="mb-4 flex justify-center">
-            <Badge variant="secondary" className="bg-primary/10 text-primary">
-              AI Powered
-            </Badge>
-          </div>
 
           {/* 서브타이틀 */}
           <p className="mb-12 text-base leading-relaxed text-muted-foreground">
