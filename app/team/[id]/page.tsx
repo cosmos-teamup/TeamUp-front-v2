@@ -234,17 +234,12 @@ export default function TeamDetailPage({ params }: { params: Promise<{ id: strin
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-lg bg-card/50 p-3">
-                <p className="text-2xl font-bold text-foreground">
-                  {teamData.memberCount}/{teamData.maxMembers}명
-                </p>
-                <p className="text-xs text-muted-foreground">팀원</p>
-              </div>
-              <div className="rounded-lg bg-card/50 p-3">
-                <p className="text-2xl font-bold text-foreground">{teamData.totalGames}경기</p>
-                <p className="text-xs text-muted-foreground">총 경기</p>
-              </div>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Users className="h-4 w-4" />
+              <span className="font-semibold text-foreground">
+                {teamData.memberCount}/{teamData.maxMembers}명
+              </span>
+              <span>(팀원)</span>
             </div>
           </CardContent>
         </Card>

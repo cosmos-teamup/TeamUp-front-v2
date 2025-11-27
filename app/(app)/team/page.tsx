@@ -11,16 +11,16 @@ import { ArrowLeft, MessageCircle, Sparkles, CheckCircle, Settings, LogOut, Crow
 import { toast } from 'sonner'
 
 const teamMembers = [
-  { name: '김철수', position: '포워드', isLeader: true },
-  { name: '이영희', position: '가드', isLeader: false },
-  { name: '박민수', position: '센터', isLeader: false },
-  { name: '최지원', position: '가드', isLeader: false },
-  { name: '정태영', position: '포워드', isLeader: false },
+  { name: '김철수', position: '포워드', isLeader: true, kakaoId: 'captain_kim_123' },
+  { name: '이영희', position: '가드', isLeader: false, kakaoId: 'lee_younghee' },
+  { name: '박민수', position: '센터', isLeader: false, kakaoId: 'park_minsu' },
+  { name: '최지원', position: '가드', isLeader: false, kakaoId: 'choi_jiwon' },
+  { name: '정태영', position: '포워드', isLeader: false, kakaoId: 'jung_taeyoung' },
 ]
 
 export default function TeamPage() {
   const router = useRouter()
-  const [copied, setCopied] = useState(false)
+  const [copied, setCopied] = useState<string | null>(null) // 어떤 ID가 복사됐는지 추적
   const [showCompleteModal, setShowCompleteModal] = useState(false)
   const [showSurveyModal, setShowSurveyModal] = useState(false)
   const [showCoachingModal, setShowCoachingModal] = useState(false)
@@ -65,12 +65,12 @@ export default function TeamPage() {
     reader.readAsDataURL(file)
   }
 
-  const handleCopyKakaoId = async () => {
+  const handleCopyKakaoId = async (id: string, name: string) => {
     try {
-      await navigator.clipboard.writeText(kakaoId)
-      setCopied(true)
-      toast.success('카카오톡 ID가 복사되었습니다!')
-      setTimeout(() => setCopied(false), 2000)
+      await navigator.clipboard.writeText(id)
+      setCopied(id)
+      toast.success(`${name}님의 카카오톡 ID가 복사되었습니다!`)
+      setTimeout(() => setCopied(null), 2000)
     } catch (err) {
       toast.error('복사에 실패했습니다.')
     }
@@ -173,34 +173,6 @@ export default function TeamPage() {
               </div>
             </div>
 
-            <div className="mb-4 rounded-lg bg-card/50 p-4">
-              <div className="mb-2 flex items-center gap-2">
-                <MessageCircle className="h-4 w-4 text-primary" />
-                <span className="text-sm font-semibold text-foreground">팀장 카카오톡 ID</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <p className="text-lg font-bold text-foreground">{kakaoId}</p>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={handleCopyKakaoId}
-                  className="min-w-[60px]"
-                >
-                  {copied ? (
-                    <>
-                      <Check className="mr-1 h-4 w-4" />
-                      완료
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="mr-1 h-4 w-4" />
-                      복사
-                    </>
-                  )}
-                </Button>
-              </div>
-            </div>
-
             <div className="grid grid-cols-3 gap-3">
               <div className="rounded-lg bg-card/50 p-3 text-center">
                 <p className="text-2xl font-bold text-foreground">18</p>
@@ -243,27 +215,55 @@ export default function TeamPage() {
               {teamMembers.map((member, index) => (
                 <div
                   key={index}
-                  className={`flex items-center justify-between p-4 ${
+                  className={`p-4 ${
                     index !== teamMembers.length - 1 ? 'border-b border-border/50' : ''
                   }`}
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary font-semibold text-foreground">
-                      {member.name[0]}
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <p className="font-semibold text-foreground">{member.name}</p>
-                        {member.isLeader && (
-                          <Crown className="h-4 w-4 text-primary" />
-                        )}
+                  <div className="mb-2 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary font-semibold text-foreground">
+                        {member.name[0]}
                       </div>
-                      <p className="text-xs text-muted-foreground">{member.position}</p>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <p className="font-semibold text-foreground">{member.name}</p>
+                          {member.isLeader && (
+                            <Crown className="h-4 w-4 text-primary" />
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground">{member.position}</p>
+                      </div>
                     </div>
+                    {member.isLeader && (
+                      <Badge variant="secondary" className="text-xs">팀장</Badge>
+                    )}
                   </div>
-                  {member.isLeader && (
-                    <Badge variant="secondary" className="text-xs">팀장</Badge>
-                  )}
+
+                  {/* 카카오톡 ID */}
+                  <div className="ml-[52px] flex items-center justify-between rounded-lg bg-secondary/30 px-3 py-2">
+                    <div className="flex items-center gap-2">
+                      <MessageCircle className="h-3.5 w-3.5 text-muted-foreground" />
+                      <span className="text-sm text-foreground">{member.kakaoId}</span>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-7 px-2 text-xs"
+                      onClick={() => handleCopyKakaoId(member.kakaoId, member.name)}
+                    >
+                      {copied === member.kakaoId ? (
+                        <>
+                          <Check className="mr-1 h-3 w-3" />
+                          완료
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="mr-1 h-3 w-3" />
+                          복사
+                        </>
+                      )}
+                    </Button>
+                  </div>
                 </div>
               ))}
             </CardContent>

@@ -1,3 +1,12 @@
+// Team Member Types
+export interface TeamMember {
+  id: string;
+  name: string;
+  kakaoId: string;
+  position?: string;
+  isLeader: boolean;
+}
+
 // Team Types
 export interface Team {
   id: string;
@@ -15,6 +24,7 @@ export interface Team {
   isOfficial: boolean; // 정식 팀 여부 (5명 모집 완료)
   captainId: string; // 팀장 ID
   matchScore?: number; // AI 매칭 점수 (0-100)
+  members?: TeamMember[]; // 팀원 목록
 }
 
 // AI Coaching Types

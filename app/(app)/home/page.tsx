@@ -10,6 +10,8 @@ import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Sparkles, Calendar, MessageCircle, Plus, Search, MapPin, Users, X, Copy, Check } from 'lucide-react'
 import { toast } from 'sonner'
+import { getCurrentTeam, getReceivedMatchRequests, getLatestMatchRequest, formatTimeAgo, initMockData, updateMatchRequestStatus } from '@/lib/storage'
+import type { MatchRequest } from '@/types'
 
 export default function HomePage() {
   // TODO: 실제로는 API로 팀 보유 여부 체크
@@ -20,13 +22,38 @@ export default function HomePage() {
   const [selectedTeam, setSelectedTeam] = useState<number | null>(null)
   const [copied, setCopied] = useState(false)
 
+  // 매칭 요청 관련 상태
+  const [showMatchRequestsModal, setShowMatchRequestsModal] = useState(false)
+  const [matchRequests, setMatchRequests] = useState<MatchRequest[]>([])
+  const [latestRequest, setLatestRequest] = useState<MatchRequest | null>(null)
+
   useEffect(() => {
+    // Mock 데이터 초기화 (개발용)
+    // TODO: 테스트 후 아래 주석 해제하여 한 번만 실행되게 변경
+    // const hasInitialized = localStorage.getItem('teamup_initialized')
+    // if (!hasInitialized) {
+    //   initMockData()
+    //   localStorage.setItem('teamup_initialized', 'true')
+    // }
+
+    // 임시: 항상 초기화 (매칭 요청 3개 보기 위해)
+    initMockData()
+
     // localStorage에서 팀 정보 로드
     const savedName = localStorage.getItem('teamName')
     const savedPhoto = localStorage.getItem('teamPhoto')
     if (savedName) setTeamName(savedName)
     if (savedPhoto) setTeamPhoto(savedPhoto)
+
+    // 매칭 요청 로드
+    loadMatchRequests()
   }, [])
+
+  const loadMatchRequests = () => {
+    const requests = getReceivedMatchRequests()
+    setMatchRequests(requests)
+    setLatestRequest(getLatestMatchRequest())
+  }
 
   // Mock: 주변 팀 데이터
   const nearbyTeams = [
@@ -329,17 +356,40 @@ export default function HomePage() {
           </h3>
 
           <div className="space-y-2">
-            <Card className="border-border/50 bg-card">
-              <CardContent className="flex items-center gap-3 p-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
-                  <MessageCircle className="h-5 w-5 text-primary" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-semibold text-foreground">새로운 매칭 요청</p>
-                  <p className="text-xs text-muted-foreground">관악 Thunders가 매칭을 신청했습니다</p>
-                </div>
-              </CardContent>
-            </Card>
+            {latestRequest ? (
+              <Card
+                className="cursor-pointer border-border/50 bg-card transition-all hover:border-primary/50"
+                onClick={() => setShowMatchRequestsModal(true)}
+              >
+                <CardContent className="flex items-center gap-3 p-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
+                    <MessageCircle className="h-5 w-5 text-primary" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="mb-1 flex items-center gap-2">
+                      <p className="text-sm font-semibold text-foreground">새로운 매칭 요청</p>
+                      {matchRequests.length > 1 && (
+                        <Badge variant="secondary" className="bg-primary/10 text-primary text-xs">
+                          {matchRequests.length}
+                        </Badge>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {latestRequest.fromTeam.name}가 매칭을 신청했습니다
+                    </p>
+                    <p className="text-xs text-muted-foreground/60">
+                      {formatTimeAgo(latestRequest.createdAt)}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <Card className="border-border/50 bg-card">
+                <CardContent className="p-4 text-center">
+                  <p className="text-sm text-muted-foreground">최근 활동이 없습니다</p>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
       </main>
@@ -503,6 +553,98 @@ export default function HomePage() {
           </DialogContent>
         </Dialog>
       )}
+
+      {/* 받은 매칭 요청 모달 */}
+      <Dialog open={showMatchRequestsModal} onOpenChange={setShowMatchRequestsModal}>
+        <DialogContent className="max-w-lg max-h-[80vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold">
+              받은 매칭 요청 ({matchRequests.length}개)
+            </DialogTitle>
+            <DialogDescription>
+              팀에서 받은 매칭 요청을 확인하고 수락/거절할 수 있습니다
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="flex-1 overflow-y-auto space-y-3 pr-2">
+            {matchRequests.length > 0 ? (
+              matchRequests.map((request) => (
+                <Card key={request.id} className="border-border/50 bg-card">
+                  <CardContent className="p-4">
+                    {/* 팀 정보 */}
+                    <div className="mb-3 flex items-center gap-3">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-lg font-bold text-primary-foreground">
+                        {request.fromTeam.shortName}
+                      </div>
+                      <div className="flex-1">
+                        <div className="mb-1 flex items-center gap-2">
+                          <h4 className="font-bold text-foreground">{request.fromTeam.name}</h4>
+                          <Badge variant="secondary" className="text-xs">
+                            레벨 {request.fromTeam.level}
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-muted-foreground">{request.fromTeam.region}</p>
+                      </div>
+                    </div>
+
+                    {/* 메시지 */}
+                    <div className="mb-3 rounded-lg bg-secondary/30 p-3">
+                      <p className="text-sm text-foreground">&quot;{request.message}&quot;</p>
+                    </div>
+
+                    {/* 시간 */}
+                    <p className="mb-3 text-xs text-muted-foreground">
+                      {formatTimeAgo(request.createdAt)}
+                    </p>
+
+                    {/* 버튼 */}
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        className="flex-1 text-destructive hover:bg-destructive/10"
+                        onClick={() => {
+                          updateMatchRequestStatus(request.id, 'rejected')
+                          toast.success('매칭 요청을 거절했습니다')
+                          loadMatchRequests()
+                        }}
+                      >
+                        거절
+                      </Button>
+                      <Button
+                        className="flex-1"
+                        onClick={() => {
+                          updateMatchRequestStatus(request.id, 'accepted')
+                          toast.success(`${request.fromTeam.name}의 매칭 요청을 수락했습니다!`)
+                          loadMatchRequests()
+                        }}
+                      >
+                        수락
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-secondary">
+                  <MessageCircle className="h-8 w-8 text-muted-foreground" />
+                </div>
+                <p className="text-sm text-muted-foreground">받은 매칭 요청이 없습니다</p>
+              </div>
+            )}
+          </div>
+
+          <div className="flex gap-2 pt-4 border-t border-border">
+            <Button
+              variant="outline"
+              className="flex-1"
+              onClick={() => setShowMatchRequestsModal(false)}
+            >
+              닫기
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

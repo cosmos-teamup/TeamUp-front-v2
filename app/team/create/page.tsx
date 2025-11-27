@@ -118,10 +118,16 @@ export default function CreateTeamPage() {
       return
     }
 
+    // 정원 검증
+    if (!formData.maxMembers || formData.maxMembers < 2 || formData.maxMembers > 50) {
+      alert('팀 정원은 2명 이상 50명 이하여야 합니다!')
+      return
+    }
+
     // TODO: 실제 백엔드 API 호출
     // const response = await api.createTeam(formData)
 
-    // Mock: localStorage에 팀 저장
+    // Mock: localStorage에 팀 추가 (덮어쓰기 X)
     const newTeam = {
       id: Date.now().toString(),
       name: formData.name,
@@ -135,7 +141,7 @@ export default function CreateTeamPage() {
       activeDays: 0,
       isOfficial: false,
       captainId: 'user1', // TODO: 실제 유저 ID
-      description: formData.description || `${formData.region}에서 활동하는 팀입니다.`,
+      description: formData.description || '', // 비어있으면 빈 문자열
       matchScore: 0,
       // AI 매칭용 데이터
       preferredTime: formData.preferredTime,
@@ -145,8 +151,18 @@ export default function CreateTeamPage() {
       travelDistance: formData.travelDistance,
     }
 
-    localStorage.setItem('myTeam', JSON.stringify(newTeam))
-    localStorage.setItem('teamName', formData.name)
+    // 기존 팀들을 가져와서 추가
+    const existingDataStr = localStorage.getItem('teamup_app_data')
+    let appData = existingDataStr ? JSON.parse(existingDataStr) : {
+      user: { id: 'user1', name: '사용자' },
+      teams: [],
+      matchRequests: []
+    }
+
+    appData.teams.push(newTeam)
+    appData.user.currentTeamId = newTeam.id // 새 팀을 현재 팀으로 설정
+
+    localStorage.setItem('teamup_app_data', JSON.stringify(appData))
 
     // 성공 모달 표시
     setShowSuccessModal(true)
@@ -187,6 +203,51 @@ export default function CreateTeamPage() {
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 className="w-full rounded-lg border border-border bg-secondary/30 px-4 py-3 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
               />
+            </div>
+
+            {/* 팀 설명 */}
+            <div>
+              <label className="mb-2 block text-sm font-semibold text-foreground">
+                팀 설명 <span className="text-xs font-normal text-muted-foreground">(선택)</span>
+                <span className="ml-2 text-xs font-normal text-muted-foreground">
+                  ({(formData.description || '').length}/30자)
+                </span>
+              </label>
+              <input
+                type="text"
+                placeholder="예: 주말 오후에 활동하는 친목 위주 팀입니다."
+                maxLength={30}
+                value={formData.description || ''}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                className="w-full rounded-lg border border-border bg-secondary/30 px-4 py-3 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+              />
+            </div>
+
+            {/* 정원 */}
+            <div>
+              <label className="mb-2 block text-sm font-semibold text-foreground">
+                팀 정원 <span className="text-destructive">*</span>
+              </label>
+              <input
+                type="text"
+                inputMode="numeric"
+                placeholder="예: 5"
+                value={formData.maxMembers || ''}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/[^0-9]/g, '')
+                  if (value === '') {
+                    setFormData({ ...formData, maxMembers: undefined })
+                  } else {
+                    setFormData({ ...formData, maxMembers: parseInt(value) })
+                  }
+                }}
+                className="w-full rounded-lg border border-border bg-secondary/30 px-4 py-3 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+              />
+              {formData.maxMembers !== undefined && (formData.maxMembers < 2 || formData.maxMembers > 50 || isNaN(formData.maxMembers)) && (
+                <p className="mt-2 text-sm text-destructive">
+                  2~50 사이의 숫자를 입력해주세요
+                </p>
+              )}
             </div>
 
             {/* 활동 지역 */}
