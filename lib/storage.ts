@@ -1,15 +1,11 @@
 // localStorage 관리 유틸리티
 // 백엔드 연동 전까지 로컬에서 데이터 관리
 
-import type { Team, MatchRequest, MatchedTeam, JoinRequest } from '@/types'
+import type { Team, MatchRequest, MatchedTeam, JoinRequest, User } from '@/types'
 
 // 전체 앱 데이터 구조
 export interface AppData {
-  user: {
-    id: string
-    name: string
-    currentTeamId?: string // 현재 활성화된 팀
-  }
+  user: User // 사용자 전체 정보
   teams: Team[]
   matchRequests: MatchRequest[]
   matchedTeams: MatchedTeam[] // 매칭 성사된 팀들
@@ -32,7 +28,10 @@ const STORAGE_KEY = 'teamup_app_data'
 const getInitialData = (): AppData => ({
   user: {
     id: 'user1',
-    name: '사용자', // TODO: 실제 로그인 시 변경
+    name: '사용자',
+    email: 'user@example.com',
+    teams: [],
+    currentTeamId: undefined,
   },
   teams: [],
   matchRequests: [],
@@ -71,6 +70,27 @@ export const setAppData = (data: AppData): void => {
     console.error('Failed to save app data:', error)
   }
 }
+
+// ============================================
+// User 관련 함수
+// ============================================
+
+// 현재 유저 가져오기
+export const getCurrentUser = (): User | null => {
+  const data = getAppData()
+  return data.user || null
+}
+
+// 현재 유저 정보 업데이트
+export const updateCurrentUser = (updates: Partial<User>): void => {
+  const data = getAppData()
+  data.user = { ...data.user, ...updates }
+  setAppData(data)
+}
+
+// ============================================
+// Team 관련 함수
+// ============================================
 
 // 현재 활성화된 팀 가져오기
 export const getCurrentTeam = (): Team | null => {
@@ -223,6 +243,9 @@ export const initMockData = (): void => {
     captainId: 'user1',
     description: '주말 오후에 활동하는 친목 위주 팀입니다.',
     logo: existingTeam?.logo, // 기존 사진 보존
+    teamDna: 'BULLS', // Chicago Bulls DNA
+    teamLevel: 5,
+    teamExp: 75,
   }
 
   // 매칭 페이지에 표시될 다른 팀들
@@ -243,6 +266,9 @@ export const initMockData = (): void => {
       totalGames: 8,
       aiReports: 5,
       activeDays: 20,
+      teamDna: 'WARRIORS',
+      teamLevel: 2,
+      teamExp: 30,
     },
     {
       id: '3',
@@ -259,6 +285,9 @@ export const initMockData = (): void => {
       totalGames: 15,
       aiReports: 12,
       activeDays: 40,
+      teamDna: 'WARRIORS',
+      teamLevel: 4,
+      teamExp: 60,
     },
     {
       id: '4',
@@ -275,6 +304,9 @@ export const initMockData = (): void => {
       totalGames: 12,
       aiReports: 10,
       activeDays: 30,
+      teamDna: 'SPURS',
+      teamLevel: 3,
+      teamExp: 45,
     },
     {
       id: '5',
@@ -291,6 +323,9 @@ export const initMockData = (): void => {
       totalGames: 22,
       aiReports: 18,
       activeDays: 55,
+      teamDna: 'BULLS',
+      teamLevel: 6,
+      teamExp: 85,
     },
     {
       id: '6',
@@ -307,6 +342,9 @@ export const initMockData = (): void => {
       totalGames: 20,
       aiReports: 15,
       activeDays: 60,
+      teamDna: 'BULLS',
+      teamLevel: 6,
+      teamExp: 85,
     },
     {
       id: '7',
@@ -323,6 +361,9 @@ export const initMockData = (): void => {
       totalGames: 12,
       aiReports: 8,
       activeDays: 30,
+      teamDna: 'BULLS',
+      teamLevel: 6,
+      teamExp: 85,
     },
     {
       id: '8',
@@ -339,6 +380,9 @@ export const initMockData = (): void => {
       totalGames: 25,
       aiReports: 20,
       activeDays: 90,
+      teamDna: 'BULLS',
+      teamLevel: 6,
+      teamExp: 85,
     },
     {
       id: '9',
@@ -355,6 +399,9 @@ export const initMockData = (): void => {
       totalGames: 18,
       aiReports: 14,
       activeDays: 50,
+      teamDna: 'BULLS',
+      teamLevel: 6,
+      teamExp: 85,
     },
     {
       id: '10',
@@ -371,6 +418,9 @@ export const initMockData = (): void => {
       totalGames: 12,
       aiReports: 9,
       activeDays: 35,
+      teamDna: 'BULLS',
+      teamLevel: 6,
+      teamExp: 85,
     },
   ]
 
@@ -524,7 +574,16 @@ export const initMockData = (): void => {
     user: {
       id: 'user1',
       name: '홍길동',
+      email: 'hong@example.com',
+      teams: mockTeams,
       currentTeamId: '1',
+      // Player Card 정보
+      height: 178,
+      position: 'G',
+      playStyle: 'SH',
+      skillLevel: 'INTERMEDIATE',
+      cardSkin: 'DEFAULT',
+      statusMsg: '코트 위의 전사',
     },
     teams: mockTeams,
     matchRequests: mockRequests,

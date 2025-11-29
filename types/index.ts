@@ -7,6 +7,9 @@ export interface TeamMember {
   isLeader: boolean;
 }
 
+// Team DNA Types
+export type TeamDNA = 'BULLS' | 'WARRIORS' | 'SPURS';
+
 // Team Types
 export interface Team {
   id: string;
@@ -25,6 +28,11 @@ export interface Team {
   captainId: string; // 팀장 ID
   matchScore?: number; // AI 매칭 점수 (0-100)
   members?: TeamMember[]; // 팀원 목록
+
+  // NBA DNA 시스템
+  teamDna?: TeamDNA; // Bulls(수비/투지), Warriors(3점/재미), Spurs(패스/기본)
+  teamLevel?: number; // 1-99
+  teamExp?: number; // 경험치 (100XP마다 레벨업)
 }
 
 // AI Coaching Types
@@ -48,6 +56,21 @@ export interface Activity {
   icon?: string;
 }
 
+// Player Card Types (FIFA Style)
+export type Position = 'G' | 'F' | 'C'; // Guard / Forward / Center
+export type PlayStyle = 'SL' | 'SH' | 'DF' | 'PA'; // Slasher / Shooter / Defender / Passer
+export type SkillLevel = 'ROOKIE' | 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED' | 'PRO';
+export type CardSkin = 'DEFAULT' | 'GOLD' | 'RARE';
+
+// Skill Level 점수 매핑
+export const SKILL_LEVEL_SCORES: Record<SkillLevel, number> = {
+  ROOKIE: 10,      // 입문
+  BEGINNER: 30,    // 초보
+  INTERMEDIATE: 50, // 중수
+  ADVANCED: 70,    // 고수
+  PRO: 90          // 선출
+};
+
 // User Types
 export interface User {
   id: string;
@@ -56,6 +79,15 @@ export interface User {
   avatar?: string;
   teams: Team[]; // 여러 팀 소속 가능
   currentTeamId?: string; // 현재 활성화된 팀
+
+  // Player Card 정보 (FIFA 스타일)
+  height?: number; // 키 (cm)
+  position?: Position; // 주 포지션
+  subPosition?: Position; // 부 포지션
+  playStyle?: PlayStyle; // 플레이 스타일
+  skillLevel?: SkillLevel; // 실력 수준
+  cardSkin?: CardSkin; // 카드 디자인 등급
+  statusMsg?: string; // 한 줄 각오 (20자 이내)
 }
 
 // Match Request Types
