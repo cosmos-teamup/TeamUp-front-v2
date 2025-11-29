@@ -24,7 +24,7 @@ export function MatchRequestsModal({
 }: MatchRequestsModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[80vh] overflow-hidden flex flex-col">
+      <DialogContent className="max-w-lg max-h-[80vh] overflow-hidden flex flex-col border-2 border-primary">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold">
             받은 매칭 요청 ({matchRequests.length}개)
@@ -36,7 +36,7 @@ export function MatchRequestsModal({
 
         <div className="flex-1 overflow-y-auto space-y-3 pr-2">
           {matchRequests.map((request) => (
-            <Card key={request.id} className="border-border/50 bg-card">
+            <Card key={request.id} className="border-primary bg-primary/5">
               <CardContent className="p-4">
                 <div className="mb-3 flex items-center gap-3">
                   <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-lg font-bold text-primary-foreground">

@@ -1,7 +1,7 @@
 // localStorage 관리 유틸리티
 // 백엔드 연동 전까지 로컬에서 데이터 관리
 
-import type { Team, MatchRequest, MatchedTeam } from '@/types'
+import type { Team, MatchRequest, MatchedTeam, JoinRequest } from '@/types'
 
 // 전체 앱 데이터 구조
 export interface AppData {
@@ -13,6 +13,7 @@ export interface AppData {
   teams: Team[]
   matchRequests: MatchRequest[]
   matchedTeams: MatchedTeam[] // 매칭 성사된 팀들
+  joinRequests: JoinRequest[] // 팀 참여 요청들
 }
 
 // 팀원 정보 (Team 타입에 members가 없어서 별도 정의)
@@ -36,6 +37,7 @@ const getInitialData = (): AppData => ({
   teams: [],
   matchRequests: [],
   matchedTeams: [],
+  joinRequests: [],
 })
 
 // 데이터 읽기
@@ -45,7 +47,14 @@ export const getAppData = (): AppData => {
   try {
     const data = localStorage.getItem(STORAGE_KEY)
     if (!data) return getInitialData()
-    return JSON.parse(data) as AppData
+    const parsed = JSON.parse(data) as AppData
+
+    // joinRequests가 없는 경우 빈 배열로 초기화 (기존 데이터 호환성)
+    if (!parsed.joinRequests) {
+      parsed.joinRequests = []
+    }
+
+    return parsed
   } catch (error) {
     console.error('Failed to read app data:', error)
     return getInitialData()
@@ -150,6 +159,31 @@ export const getMatchedTeams = (): MatchedTeam[] => {
   return data.matchedTeams
     .filter(m => m.myTeamId === currentTeam.id)
     .sort((a, b) => new Date(b.matchedAt).getTime() - new Date(a.matchedAt).getTime())
+}
+
+// 받은 팀 참여 요청 가져오기 (최신순)
+export const getReceivedJoinRequests = (): JoinRequest[] => {
+  const data = getAppData()
+  const currentTeam = getCurrentTeam()
+  if (!currentTeam) return []
+
+  return data.joinRequests
+    .filter(req => req.teamId === currentTeam.id && req.status === 'pending')
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+}
+
+// 팀 참여 요청 상태 변경
+export const updateJoinRequestStatus = (
+  requestId: string,
+  status: 'accepted' | 'rejected'
+): void => {
+  const data = getAppData()
+  const request = data.joinRequests.find(r => r.id === requestId)
+  if (request) {
+    request.status = status
+    request.respondedAt = new Date().toISOString()
+    setAppData(data)
+  }
 }
 
 // 시간 포맷 (2시간 전, 1일 전 등)
@@ -258,13 +292,93 @@ export const initMockData = (): void => {
       aiReports: 18,
       activeDays: 55,
     },
+    {
+      id: '6',
+      name: '관악 Thunders',
+      shortName: 'GT',
+      memberCount: 6,
+      maxMembers: 10,
+      level: 'A',
+      region: '관악구',
+      matchScore: 88,
+      isOfficial: true,
+      captainId: 'user_thunder',
+      description: '승부욕 강한 경쟁 중심 팀',
+      totalGames: 20,
+      aiReports: 15,
+      activeDays: 60,
+    },
+    {
+      id: '7',
+      name: '강남 Warriors',
+      shortName: 'GW',
+      memberCount: 5,
+      maxMembers: 10,
+      level: 'B+',
+      region: '강남구',
+      matchScore: 85,
+      isOfficial: true,
+      captainId: 'user_warriors',
+      description: '주말 저녁 위주 활동',
+      totalGames: 12,
+      aiReports: 8,
+      activeDays: 30,
+    },
+    {
+      id: '8',
+      name: '성북 Dragons',
+      shortName: 'SD',
+      memberCount: 7,
+      maxMembers: 10,
+      level: 'A',
+      region: '성북구',
+      matchScore: 90,
+      isOfficial: true,
+      captainId: 'user_dragons',
+      description: '실력 향상 중심 팀',
+      totalGames: 25,
+      aiReports: 20,
+      activeDays: 90,
+    },
+    {
+      id: '9',
+      name: '강서 Rockets',
+      shortName: 'GR',
+      memberCount: 8,
+      maxMembers: 10,
+      level: 'A',
+      region: '강서구 화곡',
+      matchScore: 89,
+      isOfficial: true,
+      captainId: 'user_rockets',
+      description: '주말 저녁 위주로 활동하는 팀입니다.',
+      totalGames: 18,
+      aiReports: 14,
+      activeDays: 50,
+    },
+    {
+      id: '10',
+      name: '노원 Eagles',
+      shortName: 'NE',
+      memberCount: 6,
+      maxMembers: 10,
+      level: 'B+',
+      region: '노원구 상계',
+      matchScore: 84,
+      isOfficial: true,
+      captainId: 'user_eagles',
+      description: '친목 위주로 즐겁게 농구하는 팀!',
+      totalGames: 12,
+      aiReports: 9,
+      activeDays: 35,
+    },
   ]
 
   const mockRequests: MatchRequest[] = [
     {
       id: 'req1',
       fromTeam: {
-        id: 'team_thunder',
+        id: '6',
         name: '관악 Thunders',
         shortName: 'GT',
         memberCount: 6,
@@ -286,7 +400,7 @@ export const initMockData = (): void => {
     {
       id: 'req2',
       fromTeam: {
-        id: 'team_warriors',
+        id: '7',
         name: '강남 Warriors',
         shortName: 'GW',
         memberCount: 5,
@@ -308,7 +422,7 @@ export const initMockData = (): void => {
     {
       id: 'req3',
       fromTeam: {
-        id: 'team_dragons',
+        id: '8',
         name: '성북 Dragons',
         shortName: 'SD',
         memberCount: 7,
@@ -335,7 +449,7 @@ export const initMockData = (): void => {
       id: 'matched_1',
       myTeamId: '1', // 세종 born
       matchedTeam: {
-        id: 'team_rockets',
+        id: '9',
         name: '강서 Rockets',
         shortName: 'GR',
         memberCount: 8,
@@ -356,7 +470,7 @@ export const initMockData = (): void => {
       id: 'matched_2',
       myTeamId: '1', // 세종 born
       matchedTeam: {
-        id: 'team_eagles',
+        id: '10',
         name: '노원 Eagles',
         shortName: 'NE',
         memberCount: 6,
@@ -375,6 +489,37 @@ export const initMockData = (): void => {
     },
   ]
 
+  // 팀 참여 요청 (UI 테스트용)
+  const mockJoinRequests: JoinRequest[] = [
+    {
+      id: 'join1',
+      userId: 'user1',
+      userName: '김세종',
+      teamId: '1', // 세종 born
+      message: '빠른 돌파와 패스가 장점인 세종대 농구 동호회 팀장입니다.',
+      status: 'pending',
+      createdAt: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(), // 1시간 전
+    },
+    {
+      id: 'join2',
+      userId: 'user2',
+      userName: '이광진',
+      teamId: '1', // 세종 born
+      message: '높은 점프력과 리바운드 능력이 뛰어납니다.',
+      status: 'pending',
+      createdAt: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(), // 4시간 전
+    },
+    {
+      id: 'join3',
+      userId: 'user3',
+      userName: '박강남',
+      teamId: '1', // 세종 born
+      message: '팀의 골밑을 책임지는 든든한 센터.',
+      status: 'pending',
+      createdAt: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(), // 6시간 전
+    },
+  ]
+
   const data: AppData = {
     user: {
       id: 'user1',
@@ -384,6 +529,7 @@ export const initMockData = (): void => {
     teams: mockTeams,
     matchRequests: mockRequests,
     matchedTeams: mockMatchedTeams, // 이미 수락된 매칭 2개
+    joinRequests: mockJoinRequests, // 팀 참여 요청 2개
   }
 
   setAppData(data)
