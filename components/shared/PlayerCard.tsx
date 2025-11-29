@@ -1,12 +1,15 @@
 'use client'
 
-import { User, Position, PlayStyle, SkillLevel, CardSkin, SKILL_LEVEL_SCORES } from '@/types'
+import { User, Position, PlayStyle, SkillLevel, CardSkin, SKILL_LEVEL_SCORES, Team } from '@/types'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Sword, Target, Shield, Users, Award, Star } from 'lucide-react'
+import { Sword, Target, Shield, Users, Award, Star, Mail, ChevronRight } from 'lucide-react'
+import Link from 'next/link'
 
 interface PlayerCardProps {
   user: User
+  currentTeam?: Team | null
+  showExtendedInfo?: boolean // 이메일, 팀 정보 표시 여부
   className?: string
 }
 
@@ -53,7 +56,7 @@ const CARD_SKIN_STYLES: Record<CardSkin, { gradient: string; borderColor: string
   }
 }
 
-export function PlayerCard({ user, className = '' }: PlayerCardProps) {
+export function PlayerCard({ user, currentTeam, showExtendedInfo = false, className = '' }: PlayerCardProps) {
   const cardSkin = user.cardSkin || 'DEFAULT'
   const skinStyle = CARD_SKIN_STYLES[cardSkin]
   const skillScore = user.skillLevel ? SKILL_LEVEL_SCORES[user.skillLevel] : 50
@@ -69,7 +72,7 @@ export function PlayerCard({ user, className = '' }: PlayerCardProps) {
         <div className="relative p-6">
           {/* 상단: 닉네임 & 레벨 */}
           <div className="mb-4 flex items-start justify-between">
-            <div>
+            <div className="flex-1">
               <h3 className={`text-2xl font-bold ${skinStyle.textColor}`}>
                 {user.name}
               </h3>
@@ -80,6 +83,14 @@ export function PlayerCard({ user, className = '' }: PlayerCardProps) {
                     <span className="text-xs text-white/70"> / {POSITION_INFO[user.subPosition].name}</span>
                   )}
                 </p>
+              )}
+
+              {/* 이메일 정보 (확장 모드일 때만) */}
+              {showExtendedInfo && (
+                <div className="mt-2 flex items-center gap-1.5">
+                  <Mail className="h-3.5 w-3.5 text-white/60" />
+                  <p className="text-xs text-white/80">{user.email}</p>
+                </div>
               )}
             </div>
 
@@ -136,6 +147,35 @@ export function PlayerCard({ user, className = '' }: PlayerCardProps) {
           {user.statusMsg && (
             <div className="rounded-lg bg-black/30 p-2 text-center">
               <p className="text-sm italic text-white/90">"{user.statusMsg}"</p>
+            </div>
+          )}
+
+          {/* 팀 정보 (확장 모드일 때만) */}
+          {showExtendedInfo && currentTeam && (
+            <div className="mt-3">
+              <Link href={`/team/${user.currentTeamId}`}>
+                <div className="rounded-lg bg-black/30 p-3 transition-all hover:bg-black/40">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <p className="text-xs text-white/70">소속 팀</p>
+                      <div className="flex items-center gap-2">
+                        <p className={`text-sm font-bold ${skinStyle.textColor}`}>{currentTeam.name}</p>
+                        {user.teams && user.teams.length > 1 && (
+                          <Badge className="bg-white/30 text-[10px] text-white">
+                            +{user.teams.length - 1}개 팀
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge className="bg-white/20 text-xs text-white">
+                        레벨 {currentTeam.level}
+                      </Badge>
+                      <ChevronRight className="h-4 w-4 text-white/60" />
+                    </div>
+                  </div>
+                </div>
+              </Link>
             </div>
           )}
 

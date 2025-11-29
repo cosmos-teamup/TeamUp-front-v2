@@ -7,8 +7,6 @@ import Link from 'next/link'
 import { BottomNav } from '@/components/layout/bottom-nav'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Switch } from '@/components/ui/switch'
 import {
@@ -85,52 +83,13 @@ export default function MyPage() {
               </Button>
             </Link>
           </div>
-          <PlayerCard user={user} className="mx-auto max-w-sm" />
+          <PlayerCard
+            user={user}
+            currentTeam={currentTeam}
+            showExtendedInfo={true}
+            className="mx-auto max-w-sm"
+          />
         </div>
-
-        {/* 프로필 카드 */}
-        <Card className="mb-6 border-border/50 bg-card">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-4">
-              <Avatar className="h-20 w-20">
-                <AvatarImage src={user.avatar || undefined} />
-                <AvatarFallback className="bg-primary text-xl font-bold text-primary-foreground">
-                  {user.name.charAt(0)}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1">
-                <h2 className="mb-1 text-xl font-bold text-foreground">{user.name}</h2>
-                <p className="mb-2 text-sm text-muted-foreground">{user.email}</p>
-                {currentTeam && (
-                  <Link href={`/team/${user.currentTeamId}`}>
-                    <Badge
-                      variant="secondary"
-                      className="cursor-pointer text-xs transition-colors hover:bg-primary/10 hover:text-primary"
-                    >
-                      {currentTeam.name}
-                      <ChevronRight className="ml-1 h-3 w-3" />
-                    </Badge>
-                  </Link>
-                )}
-              </div>
-            </div>
-            {currentTeam && (
-              <>
-                <Separator className="my-4" />
-                <Link href={`/team/${user.currentTeamId}`}>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full"
-                  >
-                    내 팀 보기
-                    <ChevronRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </Link>
-              </>
-            )}
-          </CardContent>
-        </Card>
 
         {/* 계정 설정 */}
         <div className="mb-6">
