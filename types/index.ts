@@ -7,6 +7,9 @@ export interface TeamMember {
   isLeader: boolean;
 }
 
+// Team DNA Types
+export type TeamDNA = 'BULLS' | 'WARRIORS' | 'SPURS';
+
 // Team Types
 export interface Team {
   id: string;
@@ -25,6 +28,11 @@ export interface Team {
   captainId: string; // 팀장 ID
   matchScore?: number; // AI 매칭 점수 (0-100)
   members?: TeamMember[]; // 팀원 목록
+
+  // NBA DNA 시스템
+  teamDna?: TeamDNA; // Bulls(수비/투지), Warriors(3점/재미), Spurs(패스/기본)
+  teamLevel?: number; // 1-99
+  teamExp?: number; // 경험치 (100XP마다 레벨업)
 }
 
 // AI Coaching Types

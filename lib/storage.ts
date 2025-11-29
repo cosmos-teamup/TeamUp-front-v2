@@ -223,6 +223,9 @@ export const initMockData = (): void => {
     captainId: 'user1',
     description: '주말 오후에 활동하는 친목 위주 팀입니다.',
     logo: existingTeam?.logo, // 기존 사진 보존
+    teamDna: 'BULLS', // Chicago Bulls DNA
+    teamLevel: 5,
+    teamExp: 75,
   }
 
   // 매칭 페이지에 표시될 다른 팀들
@@ -243,6 +246,9 @@ export const initMockData = (): void => {
       totalGames: 8,
       aiReports: 5,
       activeDays: 20,
+      teamDna: 'WARRIORS',
+      teamLevel: 2,
+      teamExp: 30,
     },
     {
       id: '3',
@@ -259,6 +265,9 @@ export const initMockData = (): void => {
       totalGames: 15,
       aiReports: 12,
       activeDays: 40,
+      teamDna: 'WARRIORS',
+      teamLevel: 4,
+      teamExp: 60,
     },
     {
       id: '4',
@@ -275,6 +284,9 @@ export const initMockData = (): void => {
       totalGames: 12,
       aiReports: 10,
       activeDays: 30,
+      teamDna: 'SPURS',
+      teamLevel: 3,
+      teamExp: 45,
     },
     {
       id: '5',
@@ -291,6 +303,9 @@ export const initMockData = (): void => {
       totalGames: 22,
       aiReports: 18,
       activeDays: 55,
+      teamDna: 'BULLS',
+      teamLevel: 6,
+      teamExp: 85,
     },
     {
       id: '6',
@@ -307,6 +322,9 @@ export const initMockData = (): void => {
       totalGames: 20,
       aiReports: 15,
       activeDays: 60,
+      teamDna: 'BULLS',
+      teamLevel: 6,
+      teamExp: 85,
     },
     {
       id: '7',
@@ -323,6 +341,9 @@ export const initMockData = (): void => {
       totalGames: 12,
       aiReports: 8,
       activeDays: 30,
+      teamDna: 'BULLS',
+      teamLevel: 6,
+      teamExp: 85,
     },
     {
       id: '8',
@@ -339,6 +360,9 @@ export const initMockData = (): void => {
       totalGames: 25,
       aiReports: 20,
       activeDays: 90,
+      teamDna: 'BULLS',
+      teamLevel: 6,
+      teamExp: 85,
     },
     {
       id: '9',
@@ -355,6 +379,9 @@ export const initMockData = (): void => {
       totalGames: 18,
       aiReports: 14,
       activeDays: 50,
+      teamDna: 'BULLS',
+      teamLevel: 6,
+      teamExp: 85,
     },
     {
       id: '10',
@@ -371,6 +398,9 @@ export const initMockData = (): void => {
       totalGames: 12,
       aiReports: 9,
       activeDays: 35,
+      teamDna: 'BULLS',
+      teamLevel: 6,
+      teamExp: 85,
     },
   ]
 

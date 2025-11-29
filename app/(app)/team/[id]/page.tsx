@@ -7,9 +7,34 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
-import { ArrowLeft, MessageCircle, Sparkles, CheckCircle, Settings, LogOut, Crown, Copy, Check, X, TrendingUp, Target, Lightbulb, Users, UserPlus } from 'lucide-react'
+import { ArrowLeft, MessageCircle, Sparkles, CheckCircle, Settings, LogOut, Crown, Copy, Check, X, TrendingUp, Target, Lightbulb, Users, UserPlus, Shield, Zap, Users2 } from 'lucide-react'
 import { toast } from 'sonner'
-import type { Team } from '@/types'
+import type { Team, TeamDNA } from '@/types'
+
+// Team DNA 정보
+const DNA_INFO: Record<TeamDNA, { name: string; icon: typeof Shield; color: string; bgColor: string; description: string }> = {
+  BULLS: {
+    name: 'Chicago Bulls',
+    icon: Shield,
+    color: 'text-red-500',
+    bgColor: 'bg-red-500/10',
+    description: '수비와 투지'
+  },
+  WARRIORS: {
+    name: 'Golden State Warriors',
+    icon: Zap,
+    color: 'text-blue-500',
+    bgColor: 'bg-blue-500/10',
+    description: '3점슛과 재미'
+  },
+  SPURS: {
+    name: 'San Antonio Spurs',
+    icon: Users2,
+    color: 'text-gray-500',
+    bgColor: 'bg-gray-500/10',
+    description: '패스와 기본기'
+  }
+}
 
 // Mock 팀원 데이터 (실제로는 API에서 가져와야 함)
 const mockTeamMembers = [
@@ -258,9 +283,14 @@ export default function TeamDetailPage() {
                 )}
                 <div>
                   <h2 className="mb-1 text-2xl font-bold text-foreground">{teamName || team.name}</h2>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <Badge className="bg-primary/20 text-primary">레벨 {team.level}</Badge>
                     <Badge variant="secondary" className="text-xs">{team.region}</Badge>
+                    {team.teamDna && DNA_INFO[team.teamDna] && (
+                      <Badge className={`${DNA_INFO[team.teamDna].bgColor} ${DNA_INFO[team.teamDna].color} text-xs`}>
+                        {DNA_INFO[team.teamDna].description}
+                      </Badge>
+                    )}
                   </div>
                   {team.isOfficial && (
                     <Badge className="mt-2 bg-green-500/10 text-green-600">정식 팀</Badge>
@@ -271,6 +301,35 @@ export default function TeamDetailPage() {
 
             {team.description && (
               <p className="mb-4 text-sm text-muted-foreground">{team.description}</p>
+            )}
+
+            {/* Team DNA 상세 정보 */}
+            {team.teamDna && DNA_INFO[team.teamDna] && (
+              <div className="mb-4 rounded-lg border border-border/50 p-3">
+                <div className="mb-2 flex items-center gap-2">
+                  {(() => {
+                    const DnaIcon = DNA_INFO[team.teamDna!].icon
+                    return <DnaIcon className={`h-5 w-5 ${DNA_INFO[team.teamDna!].color}`} />
+                  })()}
+                  <span className="text-sm font-semibold text-foreground">{DNA_INFO[team.teamDna].name} DNA</span>
+                </div>
+
+                {/* 레벨 및 경험치 바 */}
+                {team.teamLevel !== undefined && team.teamExp !== undefined && (
+                  <div>
+                    <div className="mb-1 flex items-center justify-between text-xs">
+                      <span className="font-semibold text-foreground">레벨 {team.teamLevel}</span>
+                      <span className="text-muted-foreground">{team.teamExp} / 100 XP</span>
+                    </div>
+                    <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
+                      <div
+                        className={`h-full rounded-full transition-all ${DNA_INFO[team.teamDna].bgColor.replace('/10', '')}`}
+                        style={{ width: `${team.teamExp}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
             )}
 
             <div className="grid grid-cols-3 gap-3">

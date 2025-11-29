@@ -5,8 +5,8 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { ArrowLeft, Plus } from 'lucide-react'
-import type { TeamCreationData } from '@/types'
+import { ArrowLeft, Plus, Shield, Zap, Users2 } from 'lucide-react'
+import type { TeamCreationData, TeamDNA } from '@/types'
 import { SEOUL_DISTRICTS, DISTRICT_LIST, formatRegion, type DistrictName } from '@/lib/constants'
 
 // 선택 옵션 정의
@@ -48,6 +48,40 @@ const DISTANCE_OPTIONS = [
   { value: 'metropolitan', label: '수도권 전역' },
 ]
 
+// Team DNA 옵션
+const DNA_OPTIONS = [
+  {
+    value: 'BULLS' as TeamDNA,
+    name: 'Chicago Bulls',
+    icon: Shield,
+    color: 'text-red-500',
+    bgColor: 'bg-red-500/10',
+    borderColor: 'border-red-500/50',
+    description: '수비와 투지',
+    detail: '강한 수비와 끈질긴 투지로 승리를 쟁취하는 팀'
+  },
+  {
+    value: 'WARRIORS' as TeamDNA,
+    name: 'Golden State Warriors',
+    icon: Zap,
+    color: 'text-blue-500',
+    bgColor: 'bg-blue-500/10',
+    borderColor: 'border-blue-500/50',
+    description: '3점슛과 재미',
+    detail: '화끈한 3점슛과 빠른 템포로 즐기는 팀'
+  },
+  {
+    value: 'SPURS' as TeamDNA,
+    name: 'San Antonio Spurs',
+    icon: Users2,
+    color: 'text-gray-500',
+    bgColor: 'bg-gray-500/10',
+    borderColor: 'border-gray-500/50',
+    description: '패스와 기본기',
+    detail: '정확한 패스와 탄탄한 기본기로 이기는 팀'
+  }
+]
+
 export default function CreateTeamPage() {
   const router = useRouter()
   const [formData, setFormData] = useState<TeamCreationData>({
@@ -61,6 +95,9 @@ export default function CreateTeamPage() {
     travelDistance: null,
     maxMembers: 5,
   })
+
+  // Team DNA 선택 상태
+  const [selectedDNA, setSelectedDNA] = useState<TeamDNA | null>(null)
 
   // 지역 선택 상태
   const [selectedDistrict, setSelectedDistrict] = useState<DistrictName | null>(null)
@@ -149,6 +186,10 @@ export default function CreateTeamPage() {
       gameFrequency: formData.gameFrequency,
       teamMood: formData.teamMood,
       travelDistance: formData.travelDistance,
+      // NBA DNA 시스템
+      teamDna: selectedDNA || undefined,
+      teamLevel: 1, // 초기 레벨 1
+      teamExp: 0, // 초기 경험치 0
     }
 
     // 기존 팀들을 가져와서 추가
@@ -349,6 +390,50 @@ export default function CreateTeamPage() {
                     {level}
                   </Button>
                 ))}
+              </div>
+            </div>
+
+            {/* Team DNA 선택 */}
+            <div>
+              <label className="mb-2 block text-sm font-semibold text-foreground">
+                팀 DNA <span className="text-muted-foreground text-xs">(선택)</span>
+              </label>
+              <p className="mb-3 text-xs text-muted-foreground">
+                NBA 레전드 팀 스타일을 선택하세요. AI 매니저의 조언 방식이 달라집니다.
+              </p>
+              <div className="grid gap-3">
+                {DNA_OPTIONS.map((dna) => {
+                  const Icon = dna.icon
+                  const isSelected = selectedDNA === dna.value
+                  return (
+                    <button
+                      key={dna.value}
+                      type="button"
+                      onClick={() => setSelectedDNA(isSelected ? null : dna.value)}
+                      className={`relative overflow-hidden rounded-lg border-2 p-4 text-left transition-all ${
+                        isSelected
+                          ? `${dna.borderColor} ${dna.bgColor}`
+                          : 'border-border bg-secondary/30 hover:border-border/80'
+                      }`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${dna.bgColor}`}>
+                          <Icon className={`h-6 w-6 ${dna.color}`} />
+                        </div>
+                        <div className="flex-1">
+                          <div className="mb-1 flex items-center gap-2">
+                            <h3 className="font-bold text-foreground">{dna.name}</h3>
+                            {isSelected && (
+                              <Badge className={dna.color}>선택됨</Badge>
+                            )}
+                          </div>
+                          <p className={`text-sm font-semibold ${dna.color}`}>{dna.description}</p>
+                          <p className="mt-1 text-xs text-muted-foreground">{dna.detail}</p>
+                        </div>
+                      </div>
+                    </button>
+                  )
+                })}
               </div>
             </div>
 
