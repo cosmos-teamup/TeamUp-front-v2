@@ -178,16 +178,6 @@ export function PlayerCard({ user, currentTeam, showExtendedInfo = false, classN
               </Link>
             </div>
           )}
-
-          {/* 카드 등급 뱃지 */}
-          {cardSkin !== 'DEFAULT' && (
-            <div className="absolute right-3 top-3">
-              <Badge className="bg-white/20 text-xs text-white">
-                {cardSkin === 'GOLD' && '⭐ GOLD'}
-                {cardSkin === 'RARE' && '💎 RARE'}
-              </Badge>
-            </div>
-          )}
         </div>
 
         {/* 카드 하단 장식 */}
