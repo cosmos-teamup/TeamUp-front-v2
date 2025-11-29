@@ -78,6 +78,18 @@ export interface MatchedTeam {
   requestId: string; // 원본 매칭 요청 ID
 }
 
+// Join Request Types (팀 참여 요청)
+export interface JoinRequest {
+  id: string;
+  userId: string; // 요청한 사용자 ID
+  userName: string; // 요청한 사용자 이름
+  teamId: string; // 참여하려는 팀 ID
+  message: string;
+  status: 'pending' | 'accepted' | 'rejected';
+  createdAt: string;
+  respondedAt?: string;
+}
+
 // Notification Types
 export interface Notification {
   id: string;

@@ -1,7 +1,7 @@
 // localStorage 관리 유틸리티
 // 백엔드 연동 전까지 로컬에서 데이터 관리
 
-import type { Team, MatchRequest, MatchedTeam } from '@/types'
+import type { Team, MatchRequest, MatchedTeam, JoinRequest } from '@/types'
 
 // 전체 앱 데이터 구조
 export interface AppData {
@@ -13,6 +13,7 @@ export interface AppData {
   teams: Team[]
   matchRequests: MatchRequest[]
   matchedTeams: MatchedTeam[] // 매칭 성사된 팀들
+  joinRequests: JoinRequest[] // 팀 참여 요청들
 }
 
 // 팀원 정보 (Team 타입에 members가 없어서 별도 정의)
@@ -36,6 +37,7 @@ const getInitialData = (): AppData => ({
   teams: [],
   matchRequests: [],
   matchedTeams: [],
+  joinRequests: [],
 })
 
 // 데이터 읽기
@@ -45,7 +47,14 @@ export const getAppData = (): AppData => {
   try {
     const data = localStorage.getItem(STORAGE_KEY)
     if (!data) return getInitialData()
-    return JSON.parse(data) as AppData
+    const parsed = JSON.parse(data) as AppData
+
+    // joinRequests가 없는 경우 빈 배열로 초기화 (기존 데이터 호환성)
+    if (!parsed.joinRequests) {
+      parsed.joinRequests = []
+    }
+
+    return parsed
   } catch (error) {
     console.error('Failed to read app data:', error)
     return getInitialData()
@@ -150,6 +159,31 @@ export const getMatchedTeams = (): MatchedTeam[] => {
   return data.matchedTeams
     .filter(m => m.myTeamId === currentTeam.id)
     .sort((a, b) => new Date(b.matchedAt).getTime() - new Date(a.matchedAt).getTime())
+}
+
+// 받은 팀 참여 요청 가져오기 (최신순)
+export const getReceivedJoinRequests = (): JoinRequest[] => {
+  const data = getAppData()
+  const currentTeam = getCurrentTeam()
+  if (!currentTeam) return []
+
+  return data.joinRequests
+    .filter(req => req.teamId === currentTeam.id && req.status === 'pending')
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+}
+
+// 팀 참여 요청 상태 변경
+export const updateJoinRequestStatus = (
+  requestId: string,
+  status: 'accepted' | 'rejected'
+): void => {
+  const data = getAppData()
+  const request = data.joinRequests.find(r => r.id === requestId)
+  if (request) {
+    request.status = status
+    request.respondedAt = new Date().toISOString()
+    setAppData(data)
+  }
 }
 
 // 시간 포맷 (2시간 전, 1일 전 등)
@@ -455,6 +489,28 @@ export const initMockData = (): void => {
     },
   ]
 
+  // 팀 참여 요청 (UI 테스트용)
+  const mockJoinRequests: JoinRequest[] = [
+    {
+      id: 'join1',
+      userId: 'user_kim',
+      userName: '김철수',
+      teamId: '1', // 세종 born
+      message: '농구 좋아하는 대학생입니다! 팀에 참여하고 싶습니다.',
+      status: 'pending',
+      createdAt: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(), // 1시간 전
+    },
+    {
+      id: 'join2',
+      userId: 'user_lee',
+      userName: '이영희',
+      teamId: '1', // 세종 born
+      message: '주말에 시간 많아요. 같이 농구 하고 싶습니다!',
+      status: 'pending',
+      createdAt: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(), // 4시간 전
+    },
+  ]
+
   const data: AppData = {
     user: {
       id: 'user1',
@@ -464,6 +520,7 @@ export const initMockData = (): void => {
     teams: mockTeams,
     matchRequests: mockRequests,
     matchedTeams: mockMatchedTeams, // 이미 수락된 매칭 2개
+    joinRequests: mockJoinRequests, // 팀 참여 요청 2개
   }
 
   setAppData(data)
