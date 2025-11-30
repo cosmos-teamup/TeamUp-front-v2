@@ -204,3 +204,19 @@ export interface Post {
   createdAt: string; // 작성 시간
   distance?: number; // 사용자로부터의 거리 (km)
 }
+
+// Game Record Types (경기 기록 & AI 코칭)
+export type GameResult = 'WIN' | 'LOSE' | 'DRAW';
+export type FeedbackTag = 'DEFENSE' | 'OFFENSE' | 'MENTAL' | 'TEAMWORK' | 'STAMINA';
+
+export interface GameRecord {
+  id: string;
+  teamId: string; // 팀 ID
+  teamName: string; // 팀 이름
+  opponent: string; // 상대팀 이름
+  result: GameResult; // 승/패/무
+  feedbackTag: FeedbackTag; // 피드백 태그
+  aiComment: string; // AI가 생성한 조언
+  gameDate: string; // 경기 날짜
+  createdAt: string; // 기록 생성 시간
+}

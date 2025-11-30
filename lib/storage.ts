@@ -1,7 +1,7 @@
 // localStorage 관리 유틸리티
 // 백엔드 연동 전까지 로컬에서 데이터 관리
 
-import type { Team, MatchRequest, MatchedTeam, JoinRequest, User } from '@/types'
+import type { Team, MatchRequest, MatchedTeam, JoinRequest, User, GameRecord } from '@/types'
 
 // 전체 앱 데이터 구조
 export interface AppData {
@@ -10,6 +10,7 @@ export interface AppData {
   matchRequests: MatchRequest[]
   matchedTeams: MatchedTeam[] // 매칭 성사된 팀들
   joinRequests: JoinRequest[] // 팀 참여 요청들
+  gameRecords: GameRecord[] // AI 코칭 기록들
 }
 
 // 팀원 정보 (Team 타입에 members가 없어서 별도 정의)
@@ -37,6 +38,7 @@ const getInitialData = (): AppData => ({
   matchRequests: [],
   matchedTeams: [],
   joinRequests: [],
+  gameRecords: [],
 })
 
 // 데이터 읽기
@@ -51,6 +53,11 @@ export const getAppData = (): AppData => {
     // joinRequests가 없는 경우 빈 배열로 초기화 (기존 데이터 호환성)
     if (!parsed.joinRequests) {
       parsed.joinRequests = []
+    }
+
+    // gameRecords가 없는 경우 빈 배열로 초기화 (기존 데이터 호환성)
+    if (!parsed.gameRecords) {
+      parsed.gameRecords = []
     }
 
     return parsed
@@ -589,7 +596,76 @@ export const initMockData = (): void => {
     matchRequests: mockRequests,
     matchedTeams: mockMatchedTeams, // 이미 수락된 매칭 2개
     joinRequests: mockJoinRequests, // 팀 참여 요청 2개
+    gameRecords: [], // AI 코칭 기록
   }
 
   setAppData(data)
+}
+
+// ============================================
+// GameRecord 관련 함수
+// ============================================
+
+// 모든 경기 기록 가져오기 (최신순)
+export const getAllGameRecords = (): GameRecord[] => {
+  const data = getAppData()
+  if (!data.gameRecords) return []
+
+  return data.gameRecords
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+}
+
+// 현재 팀의 경기 기록만 가져오기 (최신순)
+export const getCurrentTeamGameRecords = (): GameRecord[] => {
+  const data = getAppData()
+  const currentTeam = getCurrentTeam()
+  if (!currentTeam || !data.gameRecords) return []
+
+  return data.gameRecords
+    .filter(record => record.teamId === currentTeam.id)
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+}
+
+// 특정 경기 기록 가져오기
+export const getGameRecord = (recordId: string): GameRecord | null => {
+  const data = getAppData()
+  if (!data.gameRecords) return null
+
+  return data.gameRecords.find(r => r.id === recordId) || null
+}
+
+// 경기 기록 추가
+export const addGameRecord = (record: GameRecord): void => {
+  const data = getAppData()
+  if (!data.gameRecords) {
+    data.gameRecords = []
+  }
+  data.gameRecords.push(record)
+  setAppData(data)
+}
+
+// 경기 기록 삭제
+export const deleteGameRecord = (recordId: string): void => {
+  const data = getAppData()
+  if (!data.gameRecords) return
+
+  data.gameRecords = data.gameRecords.filter(r => r.id !== recordId)
+  setAppData(data)
+}
+
+// 현재 팀의 통계 계산
+export const getCurrentTeamStats = () => {
+  const records = getCurrentTeamGameRecords()
+  const wins = records.filter(r => r.result === 'WIN').length
+  const losses = records.filter(r => r.result === 'LOSE').length
+  const draws = records.filter(r => r.result === 'DRAW').length
+  const total = records.length
+
+  return {
+    totalGames: total,
+    wins,
+    losses,
+    draws,
+    winRate: total > 0 ? Math.round((wins / total) * 100) : 0
+  }
 }

@@ -82,7 +82,7 @@ export default function NotificationsPage() {
             className="h-10 w-10 rounded-xl object-contain"
           />
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">알림</h1>
+            <h1 className="text-2xl font-bold tracking-tight">팀 알림</h1>
             <p className="text-sm text-muted-foreground">매칭 요청 및 알림</p>
           </div>
         </div>

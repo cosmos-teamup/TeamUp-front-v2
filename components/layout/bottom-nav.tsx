@@ -43,8 +43,8 @@ export function BottomNav() {
 
   const navItems = [
     { href: '/home', icon: Home, label: '홈' },
-    { href: '/matching', icon: Search, label: '매칭' },
-    { href: '/notifications', icon: Bell, label: '알림', badge: notificationCount },
+    { href: '/matching', icon: Search, label: '팀 매칭' },
+    { href: '/notifications', icon: Bell, label: '팀 알림', badge: notificationCount },
     { href: '/map', icon: Map, label: '지도' },
     { href: '/mypage', icon: User, label: '마이' },
   ]
