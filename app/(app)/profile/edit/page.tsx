@@ -9,24 +9,41 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { ArrowLeft, Save } from 'lucide-react'
 import { getCurrentUser, updateCurrentUser } from '@/lib/storage'
-import { Position, PlayStyle, SkillLevel, CardSkin } from '@/types'
+import { Position, PlayStyle, SkillLevel, CardSkin, User } from '@/types'
 import { PlayerCard } from '@/components/shared/PlayerCard'
 
 export default function ProfileEditPage() {
   const router = useRouter()
-  const [user, setUser] = useState(getCurrentUser())
+  const [user, setUser] = useState<User | null>(null)
   const [isSaving, setIsSaving] = useState(false)
 
   // 폼 상태
   const [formData, setFormData] = useState({
-    height: user?.height || 0,
-    position: user?.position || '' as Position | '',
-    subPosition: user?.subPosition || '' as Position | '',
-    playStyle: user?.playStyle || '' as PlayStyle | '',
-    skillLevel: user?.skillLevel || '' as SkillLevel | '',
-    cardSkin: user?.cardSkin || 'DEFAULT' as CardSkin,
-    statusMsg: user?.statusMsg || ''
+    height: 0,
+    position: '' as Position | '',
+    subPosition: '' as Position | '',
+    playStyle: '' as PlayStyle | '',
+    skillLevel: '' as SkillLevel | '',
+    cardSkin: 'DEFAULT' as CardSkin,
+    statusMsg: ''
   })
+
+  // 클라이언트에서만 데이터 로드 (hydration 오류 방지)
+  useEffect(() => {
+    const userData = getCurrentUser()
+    setUser(userData)
+    if (userData) {
+      setFormData({
+        height: userData.height || 0,
+        position: userData.position || '' as Position | '',
+        subPosition: userData.subPosition || '' as Position | '',
+        playStyle: userData.playStyle || '' as PlayStyle | '',
+        skillLevel: userData.skillLevel || '' as SkillLevel | '',
+        cardSkin: userData.cardSkin || 'DEFAULT' as CardSkin,
+        statusMsg: userData.statusMsg || ''
+      })
+    }
+  }, [])
 
   // 미리보기용 유저 데이터
   const previewUser = {

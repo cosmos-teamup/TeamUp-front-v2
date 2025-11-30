@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { BottomNav } from '@/components/layout/bottom-nav'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -71,16 +71,16 @@ const nearbyCourts = [
 export default function MapPage() {
   const [showMatchModal, setShowMatchModal] = useState(false)
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null)
+  const [isTeamLeader, setIsTeamLeader] = useState(false)
 
-  // 팀장 권한 체크 (초기 상태 계산)
-  const [isTeamLeader] = useState(() => {
+  // 클라이언트에서만 데이터 로드 (hydration 오류 방지)
+  useEffect(() => {
     const currentTeam = getCurrentTeam()
     const appData = getAppData()
     if (currentTeam && appData.user) {
-      return currentTeam.captainId === appData.user.id
+      setIsTeamLeader(currentTeam.captainId === appData.user.id)
     }
-    return false
-  })
+  }, [])
 
   const handleMatchRequest = (team: Team) => {
     if (!isTeamLeader) {

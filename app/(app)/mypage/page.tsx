@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -23,14 +23,19 @@ import {
 } from 'lucide-react'
 import { getCurrentUser, getCurrentTeam } from '@/lib/storage'
 import { PlayerCard } from '@/components/shared/PlayerCard'
+import type { User, Team } from '@/types'
 
 export default function MyPage() {
   const router = useRouter()
   const [notifications, setNotifications] = useState(true)
+  const [user, setUser] = useState<User | null>(null)
+  const [currentTeam, setCurrentTeam] = useState<Team | null>(null)
 
-  // 사용자 및 팀 데이터 가져오기
-  const user = getCurrentUser()
-  const currentTeam = getCurrentTeam()
+  // 클라이언트에서만 데이터 로드 (hydration 오류 방지)
+  useEffect(() => {
+    setUser(getCurrentUser())
+    setCurrentTeam(getCurrentTeam())
+  }, [])
 
   const handleLogout = () => {
     // TODO: 실제 로그아웃 로직
