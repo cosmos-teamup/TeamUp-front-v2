@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { MapPin, Plus, Megaphone } from 'lucide-react'
 import Link from 'next/link'
 import type { Post } from '@/types'
+import KakaoMap from '@/components/shared/KakaoMap'
 
 const nearbyPosts: Post[] = [
   {
@@ -97,13 +98,8 @@ export default function MapPage() {
       </header>
 
       <main className="mx-auto max-w-lg">
-        {/* 지도 영역 (나중에 API 연동) */}
-        <div className="h-[300px] w-full bg-muted/30 flex items-center justify-center border-b border-border/50">
-          <div className="text-center space-y-2">
-            <MapPin className="h-12 w-12 text-muted-foreground mx-auto" />
-            <p className="text-sm text-muted-foreground">지도 API 연동 예정</p>
-          </div>
-        </div>
+        {/* 지도 영역 */}
+        <KakaoMap className="h-[300px] w-full border-b border-border/50" />
 
         <div className="p-4 space-y-6">
           {/* Nearby Courts */}
