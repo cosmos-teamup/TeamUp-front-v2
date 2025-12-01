@@ -60,7 +60,7 @@ export interface Activity {
 export type Position = 'PG' | 'SG' | 'SF' | 'PF' | 'C'; // Point Guard / Shooting Guard / Small Forward / Power Forward / Center
 export type PlayStyle = 'SL' | 'SH' | 'DF' | 'PA'; // Slasher / Shooter / Defender / Passer
 export type SkillLevel = 'ROOKIE' | 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED' | 'PRO';
-export type CardSkin = 'DEFAULT' | 'GOLD' | 'RARE';
+export type CardSkin = 'PG_BLUE' | 'SG_CYAN' | 'SF_GREEN' | 'PF_ORANGE' | 'C_PURPLE';
 
 // Skill Level 점수 매핑
 export const SKILL_LEVEL_SCORES: Record<SkillLevel, number> = {
@@ -84,7 +84,7 @@ export interface User {
   position?: Position; // 주 포지션
   subPosition?: Position; // 부 포지션
   playStyle?: PlayStyle; // 플레이 스타일
-  skillLevel?: SkillLevel; // 실력 수준
+  skillLevel?: SkillLevel; // @deprecated - 더 이상 사용하지 않음 (UI에서 제거됨)
   cardSkin?: CardSkin; // 카드 디자인 등급
   statusMsg?: string; // 한 줄 각오 (20자 이내)
 }
