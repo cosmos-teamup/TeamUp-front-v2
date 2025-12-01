@@ -13,11 +13,13 @@ import { TeamCard } from '@/components/shared/team-card'
 import { mockMatchTeams } from '@/lib/mock-data'
 import { getCurrentTeam, getAppData, getMatchedTeams, formatTimeAgo } from '@/lib/storage'
 import { MatchedTeamsModal } from '@/components/shared/matched-teams-modal'
+import { MatchTeamsModal } from '@/components/shared/match-teams-modal'
 
 export default function MatchingPage() {
   const [showMatchModal, setShowMatchModal] = useState(false)
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null)
   const [showMatchedTeamsModal, setShowMatchedTeamsModal] = useState(false)
+  const [showMatchTeamsModal, setShowMatchTeamsModal] = useState(false)
 
   // 현재 팀 및 팀장 권한 체크
   const team = getCurrentTeam()
@@ -89,15 +91,14 @@ export default function MatchingPage() {
                 <Badge className="bg-primary/10 text-primary text-xs">정식 팀</Badge>
               </div>
               {matchTeams.length > 2 && (
-                <Link href="/matching/teams">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-primary hover:text-primary"
-                  >
-                    전체
-                  </Button>
-                </Link>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowMatchTeamsModal(true)}
+                  className="text-primary hover:text-primary"
+                >
+                  전체
+                </Button>
               )}
             </div>
             <div className="space-y-3">
@@ -227,6 +228,14 @@ export default function MatchingPage() {
         open={showMatchedTeamsModal}
         onOpenChange={setShowMatchedTeamsModal}
         matchedTeams={matchedTeams}
+      />
+
+      {/* AI 추천 팀 전체 모달 */}
+      <MatchTeamsModal
+        open={showMatchTeamsModal}
+        onOpenChange={setShowMatchTeamsModal}
+        teams={matchTeams}
+        onMatchRequest={handleMatchRequest}
       />
 
       <BottomNav />

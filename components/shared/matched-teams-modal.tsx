@@ -1,8 +1,10 @@
+import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Check } from 'lucide-react'
 import type { MatchedTeam } from '@/types'
+import { formatTimeAgo } from '@/lib/storage'
 
 interface MatchedTeamsModalProps {
   open: boolean
@@ -38,14 +40,23 @@ export function MatchedTeamsModal({ open, onOpenChange, matchedTeams }: MatchedT
                         <span className="text-xs text-muted-foreground">{matched.matchedTeam.region}</span>
                       </div>
                       <p className="mt-1 text-xs text-muted-foreground">
-                        {matched.matchedAt}에 매칭됨
+                        {formatTimeAgo(matched.matchedAt)}에 매칭됨
                       </p>
                     </div>
                   </div>
                   <p className="mb-3 text-sm text-muted-foreground">{matched.matchedTeam.description}</p>
-                  <Button asChild variant="outline" className="w-full hover:bg-green-600! hover:text-white! hover:border-green-600!">
-                    <a href={`/team/${matched.matchedTeam.id}`}>상세 보기</a>
-                  </Button>
+                  <div className="flex gap-2">
+                    <Link href={`/team/${matched.matchedTeam.id}`} className="flex-1">
+                      <Button variant="outline" className="w-full hover:bg-green-600! hover:text-white! hover:border-green-600!">
+                        상세 보기
+                      </Button>
+                    </Link>
+                    <Link href="/coaching/create" className="flex-1">
+                      <Button className="w-full bg-green-600 hover:bg-green-700 text-white">
+                        경기 완료하기
+                      </Button>
+                    </Link>
+                  </div>
                 </CardContent>
               </Card>
             ))}
