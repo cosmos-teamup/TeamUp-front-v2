@@ -21,7 +21,7 @@ reviews:
 
   # 리뷰 댓글 관련 옵션들
   max_comments: 70                   # CodeRabbit 실제 공식 옵션 ✔
-  review_status: "COMMENT"           # COMMENT / APPROVE / REQUEST_CHANGES 중 선택 가능
+  # review_status: "COMMENT"         # COMMENT / APPROVE / REQUEST_CHANGES 중 선택 가능 (최신 버전에서 제거됨)
 
 # CodeRabbit에는 custom rule 시스템이 존재하지 않음 → description들을 가독성용 주석으로 변환
 # ----------------------------------------------------------
