@@ -15,8 +15,10 @@ interface PlayerCardProps {
 
 // 포지션 정보
 const POSITION_INFO: Record<Position, { name: string; color: string }> = {
-  G: { name: '가드', color: 'text-blue-500' },
-  F: { name: '포워드', color: 'text-green-500' },
+  PG: { name: '포인트 가드', color: 'text-blue-500' },
+  SG: { name: '슈팅 가드', color: 'text-cyan-500' },
+  SF: { name: '스몰 포워드', color: 'text-green-500' },
+  PF: { name: '파워 포워드', color: 'text-orange-500' },
   C: { name: '센터', color: 'text-purple-500' }
 }
 
@@ -76,10 +78,10 @@ export function PlayerCard({ user, currentTeam, showExtendedInfo = false, classN
               <h3 className={`text-2xl font-bold ${skinStyle.textColor}`}>
                 {user.name}
               </h3>
-              {user.position && (
+              {user.position && POSITION_INFO[user.position] && (
                 <p className={`text-sm font-semibold ${POSITION_INFO[user.position].color}`}>
                   {POSITION_INFO[user.position].name}
-                  {user.subPosition && user.subPosition !== user.position && (
+                  {user.subPosition && user.subPosition !== user.position && POSITION_INFO[user.subPosition] && (
                     <span className="text-xs text-white/70"> / {POSITION_INFO[user.subPosition].name}</span>
                   )}
                 </p>

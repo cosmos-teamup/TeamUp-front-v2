@@ -22,6 +22,8 @@ export default function NotificationsPage() {
   const [isTeamLeader, setIsTeamLeader] = useState(false)
 
   const loadData = () => {
+    if (typeof window === 'undefined') return
+
     const requests = getReceivedMatchRequests()
     setMatchRequests(requests)
     const joins = getReceivedJoinRequests()

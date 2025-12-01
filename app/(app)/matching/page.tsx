@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { BottomNav } from '@/components/layout/bottom-nav'
@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Sparkles, Check } from 'lucide-react'
-import type { Team } from '@/types'
+import type { Team, MatchedTeam } from '@/types'
 import { TeamCard } from '@/components/shared/team-card'
 import { mockMatchTeams } from '@/lib/mock-data'
 import { getCurrentTeam, getAppData, getMatchedTeams, formatTimeAgo } from '@/lib/storage'
@@ -20,18 +20,23 @@ export default function MatchingPage() {
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null)
   const [showMatchedTeamsModal, setShowMatchedTeamsModal] = useState(false)
   const [showMatchTeamsModal, setShowMatchTeamsModal] = useState(false)
+  const [currentTeam, setCurrentTeam] = useState<Team | null>(null)
+  const [isTeamLeader, setIsTeamLeader] = useState(false)
+  const [matchedTeams, setMatchedTeams] = useState<MatchedTeam[]>([])
 
-  // 현재 팀 및 팀장 권한 체크
-  const team = getCurrentTeam()
-  const appData = getAppData()
-  const isTeamLeader = team && appData.user ? team.captainId === appData.user.id : false
-  const currentTeam = team
+  // 클라이언트에서만 데이터 로드 (hydration 오류 방지)
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    const team = getCurrentTeam()
+    const appData = getAppData()
+    setCurrentTeam(team)
+    setIsTeamLeader(team && appData.user ? team.captainId === appData.user.id : false)
+    setMatchedTeams(getMatchedTeams())
+  }, [])
 
   // 정식 팀 목록
   const matchTeams = mockMatchTeams
-
-  // 매칭된 팀 목록
-  const matchedTeams = getMatchedTeams()
 
   const handleMatchRequest = (team: Team) => {
     if (!isTeamLeader) {

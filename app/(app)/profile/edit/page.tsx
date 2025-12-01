@@ -148,8 +148,10 @@ export default function ProfileEditPage() {
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   <option value="">선택하세요</option>
-                  <option value="G">가드 (G)</option>
-                  <option value="F">포워드 (F)</option>
+                  <option value="PG">포인트 가드 (PG)</option>
+                  <option value="SG">슈팅 가드 (SG)</option>
+                  <option value="SF">스몰 포워드 (SF)</option>
+                  <option value="PF">파워 포워드 (PF)</option>
                   <option value="C">센터 (C)</option>
                 </select>
               </div>
@@ -164,8 +166,10 @@ export default function ProfileEditPage() {
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   <option value="">선택하세요</option>
-                  <option value="G">가드 (G)</option>
-                  <option value="F">포워드 (F)</option>
+                  <option value="PG">포인트 가드 (PG)</option>
+                  <option value="SG">슈팅 가드 (SG)</option>
+                  <option value="SF">스몰 포워드 (SF)</option>
+                  <option value="PF">파워 포워드 (PF)</option>
                   <option value="C">센터 (C)</option>
                 </select>
               </div>
@@ -218,7 +222,7 @@ export default function ProfileEditPage() {
           <Card>
             <CardHeader>
               <CardTitle>카드 디자인</CardTitle>
-              <CardDescription>카드의 등급과 한 줄 각오를 설정하세요</CardDescription>
+              <CardDescription>카드의 등급과 한 줄 소개를 설정하세요</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
@@ -239,7 +243,7 @@ export default function ProfileEditPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="statusMsg">한 줄 각오 (20자 이내)</Label>
+                <Label htmlFor="statusMsg">한 줄 소개 (20자 이내)</Label>
                 <Textarea
                   id="statusMsg"
                   value={formData.statusMsg}

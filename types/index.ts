@@ -57,7 +57,7 @@ export interface Activity {
 }
 
 // Player Card Types (FIFA Style)
-export type Position = 'G' | 'F' | 'C'; // Guard / Forward / Center
+export type Position = 'PG' | 'SG' | 'SF' | 'PF' | 'C'; // Point Guard / Shooting Guard / Small Forward / Power Forward / Center
 export type PlayStyle = 'SL' | 'SH' | 'DF' | 'PA'; // Slasher / Shooter / Defender / Passer
 export type SkillLevel = 'ROOKIE' | 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED' | 'PRO';
 export type CardSkin = 'DEFAULT' | 'GOLD' | 'RARE';

@@ -33,6 +33,8 @@ export default function MyPage() {
 
   // 클라이언트에서만 데이터 로드 (hydration 오류 방지)
   useEffect(() => {
+    if (typeof window === 'undefined') return
+
     setUser(getCurrentUser())
     setCurrentTeam(getCurrentTeam())
   }, [])

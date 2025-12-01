@@ -397,9 +397,11 @@ export default function SignupPage() {
                   <SelectValue placeholder="주 포지션 선택" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="가드">가드 (G)</SelectItem>
-                  <SelectItem value="포워드">포워드 (F)</SelectItem>
-                  <SelectItem value="센터">센터 (C)</SelectItem>
+                  <SelectItem value="PG">포인트 가드 (PG)</SelectItem>
+                  <SelectItem value="SG">슈팅 가드 (SG)</SelectItem>
+                  <SelectItem value="SF">스몰 포워드 (SF)</SelectItem>
+                  <SelectItem value="PF">파워 포워드 (PF)</SelectItem>
+                  <SelectItem value="C">센터 (C)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -416,9 +418,11 @@ export default function SignupPage() {
                   <SelectValue placeholder="부 포지션 선택 (선택사항)" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="가드">가드 (G)</SelectItem>
-                  <SelectItem value="포워드">포워드 (F)</SelectItem>
-                  <SelectItem value="센터">센터 (C)</SelectItem>
+                  <SelectItem value="PG">포인트 가드 (PG)</SelectItem>
+                  <SelectItem value="SG">슈팅 가드 (SG)</SelectItem>
+                  <SelectItem value="SF">스몰 포워드 (SF)</SelectItem>
+                  <SelectItem value="PF">파워 포워드 (PF)</SelectItem>
+                  <SelectItem value="C">센터 (C)</SelectItem>
                 </SelectContent>
               </Select>
             </div>

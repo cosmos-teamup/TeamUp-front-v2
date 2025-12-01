@@ -38,11 +38,11 @@ const DNA_INFO: Record<TeamDNA, { name: string; icon: typeof Shield; color: stri
 
 // Mock 팀원 데이터 (실제로는 API에서 가져와야 함)
 const mockTeamMembers = [
-  { name: '김철수', position: '포워드', isLeader: true, kakaoId: 'captain_kim_123' },
-  { name: '이영희', position: '가드', isLeader: false, kakaoId: 'lee_younghee' },
-  { name: '박민수', position: '센터', isLeader: false, kakaoId: 'park_minsu' },
-  { name: '최지원', position: '가드', isLeader: false, kakaoId: 'choi_jiwon' },
-  { name: '정태영', position: '포워드', isLeader: false, kakaoId: 'jung_taeyoung' },
+  { name: '김철수', position: 'SF', isLeader: true, kakaoId: 'captain_kim_123' },
+  { name: '이영희', position: 'PG', isLeader: false, kakaoId: 'lee_younghee' },
+  { name: '박민수', position: 'C', isLeader: false, kakaoId: 'park_minsu' },
+  { name: '최지원', position: 'SG', isLeader: false, kakaoId: 'choi_jiwon' },
+  { name: '정태영', position: 'PF', isLeader: false, kakaoId: 'jung_taeyoung' },
 ]
 
 export default function TeamDetailPage() {
