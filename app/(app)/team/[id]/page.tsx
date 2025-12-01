@@ -113,7 +113,7 @@ export default function TeamDetailPage() {
           }
 
           // 현재 유저가 이 팀의 멤버인지 확인
-          const currentTeamId = appData.user?.currentTeamId
+          const currentTeamId = appData.user?.team?.id
           setIsTeamMember(currentTeamId === teamId)
           setIsTeamLeader(foundTeam.captainId === appData.user?.id)
         } else {

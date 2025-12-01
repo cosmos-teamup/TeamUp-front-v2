@@ -162,14 +162,16 @@ export default function CreateCoachingPage() {
   const [selectedTag, setSelectedTag] = useState<FeedbackTag | null>(null)
 
   useEffect(() => {
+    // 클라이언트 사이드에서만 실행
+    if (typeof window === 'undefined') return
+
     const user = getCurrentUser()
     if (!user) {
       router.push('/login')
       return
     }
 
-    const team = user.teams.find(t => t.id === user.currentTeamId)
-    setCurrentTeam(team || null)
+    setCurrentTeam(user.team || null)
 
     // 오늘 날짜를 기본값으로
     const today = new Date().toISOString().split('T')[0]

@@ -153,18 +153,13 @@ export function PlayerCard({ user, currentTeam, showExtendedInfo = false, classN
           {/* 팀 정보 (확장 모드일 때만) */}
           {showExtendedInfo && currentTeam && (
             <div className="mt-3">
-              <Link href={`/team/${user.currentTeamId}`}>
+              <Link href={`/team/${currentTeam.id}`}>
                 <div className="rounded-lg bg-black/30 p-3 transition-all hover:bg-black/40">
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
                       <p className="text-xs text-white/70">소속 팀</p>
                       <div className="flex items-center gap-2">
                         <p className={`text-sm font-bold ${skinStyle.textColor}`}>{currentTeam.name}</p>
-                        {user.teams && user.teams.length > 1 && (
-                          <Badge className="bg-white/30 text-[10px] text-white">
-                            +{user.teams.length - 1}개 팀
-                          </Badge>
-                        )}
                       </div>
                     </div>
                     <div className="flex items-center gap-2">

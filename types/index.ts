@@ -77,8 +77,7 @@ export interface User {
   name: string;
   email: string;
   avatar?: string;
-  teams: Team[]; // 여러 팀 소속 가능
-  currentTeamId?: string; // 현재 활성화된 팀
+  team?: Team; // 한 팀만 소속 가능 (optional - 팀이 없을 수도 있음)
 
   // Player Card 정보 (FIFA 스타일)
   height?: number; // 키 (cm)

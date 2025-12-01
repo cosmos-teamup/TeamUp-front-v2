@@ -24,6 +24,9 @@ export default function CoachingPage() {
   })
 
   useEffect(() => {
+    // 클라이언트 사이드에서만 실행
+    if (typeof window === 'undefined') return
+
     const user = getCurrentUser()
     if (!user) {
       router.push('/login')
@@ -35,8 +38,7 @@ export default function CoachingPage() {
     setRecords(gameRecords)
 
     // 현재 팀 정보
-    const team = user.teams.find(t => t.id === user.currentTeamId)
-    setCurrentTeam(team || null)
+    setCurrentTeam(user.team || null)
 
     // 통계 계산
     const teamStats = getCurrentTeamStats()

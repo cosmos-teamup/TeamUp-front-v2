@@ -31,8 +31,7 @@ const getInitialData = (): AppData => ({
     id: 'user1',
     name: '사용자',
     email: 'user@example.com',
-    teams: [],
-    currentTeamId: undefined,
+    team: undefined,
   },
   teams: [],
   matchRequests: [],
@@ -99,27 +98,41 @@ export const updateCurrentUser = (updates: Partial<User>): void => {
 // Team 관련 함수
 // ============================================
 
-// 현재 활성화된 팀 가져오기
+// 현재 팀 가져오기
 export const getCurrentTeam = (): Team | null => {
   const data = getAppData()
-  if (!data.user.currentTeamId) return null
-
-  return data.teams.find(t => t.id === data.user.currentTeamId) || null
+  return data.user.team || null
 }
 
-// 팀 추가
-export const addTeam = (team: Team): void => {
+// 팀 설정 (유저에게 팀 할당)
+export const setUserTeam = (team: Team): void => {
   const data = getAppData()
-  data.teams.push(team)
-  data.user.currentTeamId = team.id // 새로 만든 팀을 현재 팀으로 설정
+  data.user.team = team
+
+  // teams 배열에도 추가 (중복 체크)
+  const existingIndex = data.teams.findIndex(t => t.id === team.id)
+  if (existingIndex === -1) {
+    data.teams.push(team)
+  } else {
+    data.teams[existingIndex] = team
+  }
+
   setAppData(data)
 }
 
-// 현재 팀 설정
+// 팀 추가 (레거시 호환)
+export const addTeam = (team: Team): void => {
+  setUserTeam(team)
+}
+
+// 현재 팀 설정 (레거시 호환)
 export const setCurrentTeam = (teamId: string): void => {
   const data = getAppData()
-  data.user.currentTeamId = teamId
-  setAppData(data)
+  const team = data.teams.find(t => t.id === teamId)
+  if (team) {
+    data.user.team = team
+    setAppData(data)
+  }
 }
 
 // 매칭 요청 추가
@@ -582,8 +595,7 @@ export const initMockData = (): void => {
       id: 'user1',
       name: '홍길동',
       email: 'hong@example.com',
-      teams: mockTeams,
-      currentTeamId: '1',
+      team: mockTeams[0], // 첫 번째 팀을 현재 팀으로 설정
       // Player Card 정보
       height: 178,
       position: 'G',

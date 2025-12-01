@@ -201,7 +201,7 @@ export default function CreateTeamPage() {
     }
 
     appData.teams.push(newTeam)
-    appData.user.currentTeamId = newTeam.id // 새 팀을 현재 팀으로 설정
+    appData.user.team = newTeam // 새 팀을 현재 팀으로 설정
 
     localStorage.setItem('teamup_app_data', JSON.stringify(appData))
 
