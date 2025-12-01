@@ -1,7 +1,7 @@
 import type { Court, NearbyTeam } from '@/types';
 
 // API 클라이언트 설정
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
 // Fetch wrapper with error handling
 async function fetchAPI(endpoint: string, options?: RequestInit) {
@@ -20,14 +20,68 @@ async function fetchAPI(endpoint: string, options?: RequestInit) {
   return response.json();
 }
 
+// Fetch wrapper for text responses
+async function fetchText(endpoint: string, options?: RequestInit) {
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options?.headers,
+    },
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(errorText || `API Error: ${response.statusText}`);
+  }
+
+  return response.text();
+}
+
 // Mock 데이터 (백엔드 완성 전까지 사용)
 const mockCourts: Court[] = [];
 const mockNearbyTeams: NearbyTeam[] = [];
 
 export const api = {
+  // ========== Auth APIs (패스워드리스) ==========
+  // 1️⃣ 이메일 인증코드 요청
+  requestEmailVerification: (email: string) =>
+    fetchText('/email/verify/request', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    }),
+
+  // 2️⃣ 이메일 인증코드 확인
+  confirmEmailVerification: (email: string, code: string) =>
+    fetchText('/email/verify/confirm', {
+      method: 'POST',
+      body: JSON.stringify({ email, code }),
+    }),
+
+  // 3️⃣ 회원가입
+  register: (data: {
+    email: string;
+    nickname: string;
+    mainPosition: string;
+    subPosition?: string;
+    gender: string;
+    age: number;
+    address: string;
+  }) =>
+    fetchAPI('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
   // User APIs
   getMe: () => fetchAPI('/users/me'),
   getUser: (id: string) => fetchAPI(`/users/${id}`),
+  getUserByEmail: (email: string) => fetchAPI(`/user?email=${email}`),
+  getAllUsers: () => fetchAPI('/user/all'),
+  deleteUserByEmail: (email: string) =>
+    fetchAPI(`/user/by-email?email=${email}`, {
+      method: 'DELETE',
+    }),
 
   // Team APIs
   getMyTeams: () => fetchAPI('/teams/my'),

@@ -1,101 +1,232 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Checkbox } from '@/components/ui/checkbox'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Check, X } from 'lucide-react'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Mail, Clock, User, MapPin, AlertCircle } from 'lucide-react'
+
+const API_URL = 'http://localhost:8080'
+const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK !== 'false' // 기본값: Mock 사용
 
 export default function SignupPage() {
   const router = useRouter()
+  const [step, setStep] = useState<'email' | 'code' | 'info'>('email')
+  const [email, setEmail] = useState('')
+  const [code, setCode] = useState('')
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-  })
-  const [agreements, setAgreements] = useState({
-    terms: false,
-    privacy: false,
-    marketing: false,
+    nickname: '',
+    mainPosition: '',
+    subPosition: '',
+    gender: '',
+    age: '',
+    address: '',
   })
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [timer, setTimer] = useState(0)
+  const [mockCode, setMockCode] = useState('') // Mock 인증코드 저장
 
-  // 비밀번호 강도 체크
-  const passwordStrength = () => {
-    const { password } = formData
-    if (!password) return { strength: 0, label: '', color: '' }
+  // 타이머 카운트다운 (5분)
+  useEffect(() => {
+    if (timer > 0) {
+      const interval = setInterval(() => {
+        setTimer((prev) => prev - 1)
+      }, 1000)
+      return () => clearInterval(interval)
+    }
+  }, [timer])
 
-    let strength = 0
-    if (password.length >= 8) strength++
-    if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength++
-    if (/\d/.test(password)) strength++
-    if (/[!@#$%^&*]/.test(password)) strength++
-
-    if (strength <= 1) return { strength, label: '약함', color: 'text-red-500' }
-    if (strength === 2) return { strength, label: '보통', color: 'text-yellow-500' }
-    if (strength === 3) return { strength, label: '강함', color: 'text-green-500' }
-    return { strength, label: '매우 강함', color: 'text-primary' }
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60)
+    const secs = seconds % 60
+    return `${mins}:${secs.toString().padStart(2, '0')}`
   }
 
-  const strength = passwordStrength()
-
-  // 비밀번호 일치 확인
-  const passwordsMatch =
-    formData.password &&
-    formData.confirmPassword &&
-    formData.password === formData.confirmPassword
-
-  const passwordsDontMatch =
-    formData.confirmPassword &&
-    formData.password !== formData.confirmPassword
-
-  // 필수 약관 동의 확인
-  const canSubmit =
-    formData.name &&
-    formData.email &&
-    formData.password &&
-    formData.confirmPassword &&
-    passwordsMatch &&
-    agreements.terms &&
-    agreements.privacy
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  // 1️⃣ 이메일 인증코드 요청
+  const handleRequestCode = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!canSubmit) return
-
     setIsLoading(true)
+    setError('')
 
-    // TODO: 실제 API 연동
-    // try {
-    //   const response = await fetch('/api/auth/signup', {
-    //     method: 'POST',
-    //     headers: { 'Content-Type': 'application/json' },
-    //     body: JSON.stringify({
-    //       name: formData.name,
-    //       email: formData.email,
-    //       password: formData.password,
-    //       marketing: agreements.marketing
-    //     })
-    //   })
-    //   if (response.ok) {
-    //     router.push('/login')
-    //   }
-    // } catch (error) {
-    //   console.error('Signup failed:', error)
-    // }
+    // Mock 모드
+    if (USE_MOCK) {
+      setTimeout(() => {
+        const generatedCode = Math.floor(100000 + Math.random() * 900000).toString()
+        setMockCode(generatedCode)
+        console.log(`🔐 Mock 인증코드: ${generatedCode}`)
+        alert(`Mock 모드: 인증코드는 "${generatedCode}" 입니다`)
+        setStep('code')
+        setTimer(300) // 5분
+        setIsLoading(false)
+      }, 1000)
+      return
+    }
 
-    // Mock: 임시로 2초 후 로그인 페이지로 이동
-    setTimeout(() => {
+    // 실제 API 호출
+    try {
+      const response = await fetch(`${API_URL}/email/verify/request`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      })
+
+      if (response.ok) {
+        setStep('code')
+        setTimer(300) // 5분
+      } else {
+        const errorText = await response.text()
+        setError(errorText || '인증코드 발송에 실패했습니다.')
+      }
+    } catch (err) {
+      setError('서버와 연결할 수 없습니다.')
+    } finally {
       setIsLoading(false)
-      router.push('/login')
-    }, 2000)
+    }
+  }
+
+  // 2️⃣ 인증코드 확인
+  const handleVerifyCode = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsLoading(true)
+    setError('')
+
+    // Mock 모드
+    if (USE_MOCK) {
+      setTimeout(() => {
+        if (code === mockCode) {
+          setStep('info')
+        } else {
+          setError('인증코드가 올바르지 않습니다.')
+        }
+        setIsLoading(false)
+      }, 1000)
+      return
+    }
+
+    // 실제 API 호출
+    try {
+      const response = await fetch(`${API_URL}/email/verify/confirm`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, code })
+      })
+
+      if (response.ok) {
+        setStep('info')
+      } else {
+        const errorText = await response.text()
+        setError(errorText || '인증코드가 올바르지 않습니다.')
+      }
+    } catch (err) {
+      setError('서버와 연결할 수 없습니다.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // 3️⃣ 회원가입
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsLoading(true)
+    setError('')
+
+    // Mock 모드
+    if (USE_MOCK) {
+      setTimeout(() => {
+        console.log('Mock 회원가입 성공:', { email, ...formData })
+        alert('Mock 모드: 회원가입 성공!')
+        router.push('/login')
+        setIsLoading(false)
+      }, 1000)
+      return
+    }
+
+    // 실제 API 호출
+    try {
+      const registerBody = {
+        email,
+        nickname: formData.nickname,
+        mainPosition: formData.mainPosition,
+        subPosition: formData.subPosition || undefined,
+        gender: formData.gender,
+        age: parseInt(formData.age),
+        address: formData.address,
+      }
+
+      const response = await fetch(`${API_URL}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(registerBody)
+      })
+
+      if (response.ok) {
+        // 회원가입 성공 - 로그인 페이지로 이동
+        router.push('/login')
+      } else {
+        const errorText = await response.text()
+        setError(errorText || '회원가입에 실패했습니다.')
+      }
+    } catch (err) {
+      setError('서버와 연결할 수 없습니다.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // 인증코드 재전송
+  const handleResendCode = async () => {
+    setIsLoading(true)
+    setError('')
+    setCode('')
+
+    // Mock 모드
+    if (USE_MOCK) {
+      setTimeout(() => {
+        const generatedCode = Math.floor(100000 + Math.random() * 900000).toString()
+        setMockCode(generatedCode)
+        console.log(`🔐 Mock 인증코드 (재전송): ${generatedCode}`)
+        alert(`Mock 모드: 인증코드는 "${generatedCode}" 입니다`)
+        setTimer(300) // 5분 리셋
+        setIsLoading(false)
+      }, 1000)
+      return
+    }
+
+    // 실제 API 호출
+    try {
+      const response = await fetch(`${API_URL}/email/verify/request`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      })
+
+      if (response.ok) {
+        setTimer(300) // 5분 리셋
+      } else {
+        setError('인증코드 재전송에 실패했습니다.')
+      }
+    } catch (err) {
+      setError('서버와 연결할 수 없습니다.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const getStepDescription = () => {
+    switch (step) {
+      case 'email':
+        return '이메일 인증으로 안전하게 시작하세요'
+      case 'code':
+        return '이메일로 받은 6자리 인증코드를 입력하세요'
+      case 'info':
+        return '기본 정보를 입력하고 TeamUp을 시작하세요'
+    }
   }
 
   return (
@@ -109,208 +240,260 @@ export default function SignupPage() {
           className="mx-auto mb-2 rounded-xl object-cover"
         />
         <CardTitle className="text-2xl font-bold">회원가입</CardTitle>
-        <CardDescription>
-          TeamUp과 함께 완벽한 팀을 만나보세요
-        </CardDescription>
+        <CardDescription>{getStepDescription()}</CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* 이름 */}
-          <div className="space-y-2">
-            <Label htmlFor="name">이름</Label>
-            <Input
-              id="name"
-              type="text"
-              placeholder="홍길동"
-              value={formData.name}
-              onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
-              }
-              required
-              disabled={isLoading}
-              className="h-11"
-            />
-          </div>
-
-          {/* 이메일 */}
-          <div className="space-y-2">
-            <Label htmlFor="email">이메일</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="email@example.com"
-              value={formData.email}
-              onChange={(e) =>
-                setFormData({ ...formData, email: e.target.value })
-              }
-              required
-              disabled={isLoading}
-              className="h-11"
-            />
-          </div>
-
-          {/* 비밀번호 */}
-          <div className="space-y-2">
-            <Label htmlFor="password">비밀번호</Label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="8자 이상 입력"
-              value={formData.password}
-              onChange={(e) =>
-                setFormData({ ...formData, password: e.target.value })
-              }
-              required
-              disabled={isLoading}
-              className="h-11"
-            />
-            {formData.password && (
-              <div className="flex items-center gap-2">
-                <div className="flex-1">
-                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
-                    <div
-                      className="h-full bg-primary transition-all"
-                      style={{ width: `${(strength.strength / 4) * 100}%` }}
-                    />
-                  </div>
-                </div>
-                <span className={`text-xs font-medium ${strength.color}`}>
-                  {strength.label}
-                </span>
+        {/* Step 1: 이메일 입력 */}
+        {step === 'email' && (
+          <form onSubmit={handleRequestCode} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">이메일</Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="email@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  disabled={isLoading}
+                  className={`h-11 pl-10 ${error && step === 'email' ? 'border-red-500' : ''}`}
+                />
               </div>
-            )}
-          </div>
+              {error && step === 'email' && (
+                <div className="flex items-center gap-1.5 text-sm text-red-500">
+                  <AlertCircle className="h-4 w-4" />
+                  <span>{error}</span>
+                </div>
+              )}
+            </div>
 
-          {/* 비밀번호 확인 */}
-          <div className="space-y-2">
-            <Label htmlFor="confirmPassword">비밀번호 확인</Label>
-            <div className="relative">
+            <Button
+              type="submit"
+              className="h-11 w-full bg-primary text-primary-foreground hover:bg-primary/90"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <div className="flex items-center gap-2">
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
+                  인증코드 발송 중...
+                </div>
+              ) : (
+                '인증코드 받기'
+              )}
+            </Button>
+          </form>
+        )}
+
+        {/* Step 2: 인증코드 입력 */}
+        {step === 'code' && (
+          <form onSubmit={handleVerifyCode} className="space-y-4">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="code">인증코드</Label>
+                {timer > 0 && (
+                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                    <Clock className="h-4 w-4" />
+                    <span>{formatTime(timer)}</span>
+                  </div>
+                )}
+              </div>
               <Input
-                id="confirmPassword"
-                type="password"
-                placeholder="비밀번호 재입력"
-                value={formData.confirmPassword}
-                onChange={(e) =>
-                  setFormData({ ...formData, confirmPassword: e.target.value })
-                }
+                id="code"
+                type="text"
+                placeholder="6자리 인증코드"
+                value={code}
+                onChange={(e) => {
+                  setCode(e.target.value.replace(/[^0-9]/g, '').slice(0, 6))
+                  setError('') // 입력 시 에러 클리어
+                }}
                 required
                 disabled={isLoading}
-                className="h-11"
+                className={`h-11 text-center text-lg tracking-widest ${error && step === 'code' ? 'border-red-500' : ''}`}
+                maxLength={6}
               />
-              {passwordsMatch && (
-                <Check className="absolute right-3 top-3 h-5 w-5 text-green-500" />
+              {error && step === 'code' ? (
+                <div className="flex items-center gap-1.5 text-sm text-red-500">
+                  <AlertCircle className="h-4 w-4" />
+                  <span>{error}</span>
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  <strong>{email}</strong> 으로 전송된 인증코드를 입력하세요
+                </p>
               )}
-              {passwordsDontMatch && (
-                <X className="absolute right-3 top-3 h-5 w-5 text-red-500" />
+            </div>
+
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                className="h-11 flex-1"
+                onClick={() => setStep('email')}
+                disabled={isLoading}
+              >
+                이메일 변경
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="h-11 flex-1"
+                onClick={handleResendCode}
+                disabled={isLoading || timer > 240}
+              >
+                재전송
+              </Button>
+            </div>
+
+            <Button
+              type="submit"
+              className="h-11 w-full bg-primary text-primary-foreground hover:bg-primary/90"
+              disabled={isLoading || code.length !== 6}
+            >
+              {isLoading ? (
+                <div className="flex items-center gap-2">
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
+                  확인 중...
+                </div>
+              ) : (
+                '다음'
               )}
-            </div>
-            {passwordsDontMatch && (
-              <p className="text-xs text-red-500">
-                비밀번호가 일치하지 않습니다
-              </p>
-            )}
-          </div>
+            </Button>
+          </form>
+        )}
 
-          {/* 약관 동의 */}
-          <div className="space-y-3 rounded-lg border border-border/50 bg-muted/30 p-4">
-            <div className="flex items-start space-x-2">
-              <Checkbox
-                id="terms"
-                checked={agreements.terms}
-                onCheckedChange={(checked) =>
-                  setAgreements({ ...agreements, terms: checked as boolean })
-                }
+        {/* Step 3: 회원정보 입력 */}
+        {step === 'info' && (
+          <form onSubmit={handleRegister} className="space-y-4">
+            {/* 닉네임 */}
+            <div className="space-y-2">
+              <Label htmlFor="nickname">닉네임 *</Label>
+              <div className="relative">
+                <User className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
+                <Input
+                  id="nickname"
+                  type="text"
+                  placeholder="홍길동"
+                  value={formData.nickname}
+                  onChange={(e) => setFormData({ ...formData, nickname: e.target.value })}
+                  required
+                  disabled={isLoading}
+                  className="h-11 pl-10"
+                />
+              </div>
+            </div>
+
+            {/* 주 포지션 */}
+            <div className="space-y-2">
+              <Label htmlFor="mainPosition">주 포지션 *</Label>
+              <Select
+                value={formData.mainPosition}
+                onValueChange={(value) => setFormData({ ...formData, mainPosition: value })}
+                required
                 disabled={isLoading}
-              />
-              <div className="grid gap-1.5 leading-none">
-                <Label
-                  htmlFor="terms"
-                  className="flex items-center gap-2 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                >
-                  <span>이용약관 동의</span>
-                  <Badge variant="destructive" className="h-5 text-xs">
-                    필수
-                  </Badge>
-                </Label>
-                <Link
-                  href="/terms"
-                  className="text-xs text-muted-foreground hover:text-primary hover:underline"
-                >
-                  약관 보기
-                </Link>
-              </div>
+              >
+                <SelectTrigger className="h-11">
+                  <SelectValue placeholder="주 포지션 선택" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="가드">가드 (G)</SelectItem>
+                  <SelectItem value="포워드">포워드 (F)</SelectItem>
+                  <SelectItem value="센터">센터 (C)</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
-            <div className="flex items-start space-x-2">
-              <Checkbox
-                id="privacy"
-                checked={agreements.privacy}
-                onCheckedChange={(checked) =>
-                  setAgreements({ ...agreements, privacy: checked as boolean })
-                }
+            {/* 부 포지션 */}
+            <div className="space-y-2">
+              <Label htmlFor="subPosition">부 포지션 (선택)</Label>
+              <Select
+                value={formData.subPosition}
+                onValueChange={(value) => setFormData({ ...formData, subPosition: value })}
                 disabled={isLoading}
-              />
-              <div className="grid gap-1.5 leading-none">
-                <Label
-                  htmlFor="privacy"
-                  className="flex items-center gap-2 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                <SelectTrigger className="h-11">
+                  <SelectValue placeholder="부 포지션 선택 (선택사항)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="가드">가드 (G)</SelectItem>
+                  <SelectItem value="포워드">포워드 (F)</SelectItem>
+                  <SelectItem value="센터">센터 (C)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* 성별 & 나이 */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="gender">성별 *</Label>
+                <Select
+                  value={formData.gender}
+                  onValueChange={(value) => setFormData({ ...formData, gender: value })}
+                  required
+                  disabled={isLoading}
                 >
-                  <span>개인정보 처리방침 동의</span>
-                  <Badge variant="destructive" className="h-5 text-xs">
-                    필수
-                  </Badge>
-                </Label>
-                <Link
-                  href="/privacy"
-                  className="text-xs text-muted-foreground hover:text-primary hover:underline"
-                >
-                  약관 보기
-                </Link>
+                  <SelectTrigger className="h-11">
+                    <SelectValue placeholder="성별" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="남성">남성</SelectItem>
+                    <SelectItem value="여성">여성</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="age">나이 *</Label>
+                <Input
+                  id="age"
+                  type="number"
+                  placeholder="25"
+                  min="1"
+                  value={formData.age}
+                  onChange={(e) => setFormData({ ...formData, age: e.target.value })}
+                  required
+                  disabled={isLoading}
+                  className="h-11"
+                />
               </div>
             </div>
 
-            <div className="flex items-start space-x-2">
-              <Checkbox
-                id="marketing"
-                checked={agreements.marketing}
-                onCheckedChange={(checked) =>
-                  setAgreements({
-                    ...agreements,
-                    marketing: checked as boolean,
-                  })
-                }
-                disabled={isLoading}
-              />
-              <div className="grid gap-1.5 leading-none">
-                <Label
-                  htmlFor="marketing"
-                  className="flex items-center gap-2 text-sm font-normal leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                >
-                  <span>마케팅 정보 수신 동의</span>
-                  <Badge variant="secondary" className="h-5 text-xs">
-                    선택
-                  </Badge>
-                </Label>
+            {/* 주소 */}
+            <div className="space-y-2">
+              <Label htmlFor="address">활동 지역 *</Label>
+              <div className="relative">
+                <MapPin className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
+                <Input
+                  id="address"
+                  type="text"
+                  placeholder="서울시 강남구"
+                  value={formData.address}
+                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                  required
+                  disabled={isLoading}
+                  className="h-11 pl-10"
+                />
               </div>
             </div>
-          </div>
 
-          {/* 회원가입 버튼 */}
-          <Button
-            type="submit"
-            className="h-11 w-full bg-primary text-primary-foreground hover:bg-primary/90"
-            disabled={!canSubmit || isLoading}
-          >
-            {isLoading ? (
-              <div className="flex items-center gap-2">
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
-                가입 중...
-              </div>
-            ) : (
-              '회원가입'
-            )}
-          </Button>
-        </form>
+            {/* 회원가입 버튼 */}
+            <Button
+              type="submit"
+              className="h-11 w-full bg-primary text-primary-foreground hover:bg-primary/90"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <div className="flex items-center gap-2">
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
+                  가입 중...
+                </div>
+              ) : (
+                '회원가입 완료'
+              )}
+            </Button>
+          </form>
+        )}
 
         {/* 로그인 링크 */}
         <div className="mt-6 text-center text-sm">
