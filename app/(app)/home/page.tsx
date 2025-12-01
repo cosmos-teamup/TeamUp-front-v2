@@ -155,24 +155,6 @@ export default function HomePage() {
                 </CardContent>
               </Card>
             </Link>
-
-            <Link href="/notifications">
-              <Card className="cursor-pointer overflow-hidden border-border/50 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent transition-all hover:border-primary/50">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-4">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/20">
-                      <Bell className="h-6 w-6 text-primary" />
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="mb-1 font-bold text-foreground">알림</h4>
-                      <p className="text-xs text-muted-foreground">
-                        매칭 요청 및 알림 확인
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
           </div>
         </div>
 

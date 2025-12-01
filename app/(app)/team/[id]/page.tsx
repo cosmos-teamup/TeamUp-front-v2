@@ -82,6 +82,9 @@ export default function TeamDetailPage() {
   const [isTeamLeader, setIsTeamLeader] = useState(false)
 
   useEffect(() => {
+    // 클라이언트 사이드에서만 실행
+    if (typeof window === 'undefined') return
+
     // TODO: 실제 API로 팀 데이터 로드
     // const fetchTeam = async () => {
     //   try {
