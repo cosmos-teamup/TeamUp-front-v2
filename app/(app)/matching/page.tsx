@@ -172,7 +172,7 @@ export default function MatchingPage() {
                     </div>
                     <p className="mb-3 text-sm text-muted-foreground">{matched.matchedTeam.description}</p>
                     <div className="flex gap-2">
-                      <Link href={`/team/${matched.matchedTeam.id}`} className="flex-1">
+                      <Link href={`/team/${matched.matchedTeam.id}?from=matched`} className="flex-1">
                         <Button variant="outline" className="w-full hover:bg-green-600! hover:text-white! hover:border-green-600!">
                           상세 보기
                         </Button>
