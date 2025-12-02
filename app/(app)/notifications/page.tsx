@@ -165,7 +165,7 @@ export default function NotificationsPage() {
                           수락
                         </Button>
                       </div>
-                      <Link href={`/team/${request.fromTeam.id}`} className="w-full">
+                      <Link href={`/team/${request.fromTeam.id}?from=match-request`} className="w-full">
                         <Button variant="outline" className="w-full hover:bg-orange-400! hover:text-black! hover:border-none!">상세 보기</Button>
                       </Link>
                     </div>

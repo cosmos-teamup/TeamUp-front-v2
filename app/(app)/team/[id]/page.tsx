@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter, useParams } from 'next/navigation'
+import { useRouter, useParams, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -48,7 +48,9 @@ const mockTeamMembers = [
 export default function TeamDetailPage() {
   const router = useRouter()
   const params = useParams()
+  const searchParams = useSearchParams()
   const teamId = params.id as string
+  const fromParam = searchParams.get('from') // 'match-request', 'matched', null
 
   const [team, setTeam] = useState<Team | null>(null)
   const [teamMembers, setTeamMembers] = useState(mockTeamMembers)
@@ -428,33 +430,77 @@ export default function TeamDetailPage() {
                     </div>
                   </div>
 
-                  {/* 카카오톡 ID - 팀 멤버만 볼 수 있음 */}
-                  {isTeamMember && (
-                    <div className="ml-[52px] flex items-center justify-between rounded-lg bg-secondary/30 px-3 py-2">
-                      <div className="flex items-center gap-2">
-                        <MessageCircle className="h-3.5 w-3.5 text-muted-foreground" />
-                        <span className="text-sm text-foreground">{member.kakaoId}</span>
-                      </div>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-7 px-2 text-xs"
-                        onClick={() => handleCopyKakaoId(member.kakaoId, member.name)}
-                      >
-                        {copied === member.kakaoId ? (
-                          <>
-                            <Check className="mr-1 h-3 w-3" />
-                            완료
-                          </>
-                        ) : (
-                          <>
-                            <Copy className="mr-1 h-3 w-3" />
-                            복사
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                  )}
+                  {/* 카카오톡 ID 표시 로직 */}
+                  {(() => {
+                    // 받은 매칭 요청에서 온 경우: 카카오톡 아이디 전부 숨김
+                    if (fromParam === 'match-request') {
+                      return null
+                    }
+
+                    // 매칭된 경기에서 온 경우: 팀장의 카카오톡 아이디만 표시
+                    if (fromParam === 'matched') {
+                      if (!member.isLeader) return null
+
+                      return (
+                        <div className="ml-[52px] flex items-center justify-between rounded-lg bg-secondary/30 px-3 py-2">
+                          <div className="flex items-center gap-2">
+                            <MessageCircle className="h-3.5 w-3.5 text-muted-foreground" />
+                            <span className="text-sm text-foreground">{member.kakaoId}</span>
+                          </div>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-7 px-2 text-xs"
+                            onClick={() => handleCopyKakaoId(member.kakaoId, member.name)}
+                          >
+                            {copied === member.kakaoId ? (
+                              <>
+                                <Check className="mr-1 h-3 w-3" />
+                                완료
+                              </>
+                            ) : (
+                              <>
+                                <Copy className="mr-1 h-3 w-3" />
+                                복사
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      )
+                    }
+
+                    // 기본: 팀 멤버면 모든 카카오톡 아이디 표시
+                    if (isTeamMember) {
+                      return (
+                        <div className="ml-[52px] flex items-center justify-between rounded-lg bg-secondary/30 px-3 py-2">
+                          <div className="flex items-center gap-2">
+                            <MessageCircle className="h-3.5 w-3.5 text-muted-foreground" />
+                            <span className="text-sm text-foreground">{member.kakaoId}</span>
+                          </div>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-7 px-2 text-xs"
+                            onClick={() => handleCopyKakaoId(member.kakaoId, member.name)}
+                          >
+                            {copied === member.kakaoId ? (
+                              <>
+                                <Check className="mr-1 h-3 w-3" />
+                                완료
+                              </>
+                            ) : (
+                              <>
+                                <Copy className="mr-1 h-3 w-3" />
+                                복사
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      )
+                    }
+
+                    return null
+                  })()}
                 </div>
               ))}
             </CardContent>
