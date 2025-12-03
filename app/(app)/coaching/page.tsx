@@ -8,14 +8,15 @@ import { BottomNav } from '@/components/layout/bottom-nav'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { TrendingUp, TrendingDown, Minus, Plus, Trophy, Target } from 'lucide-react'
-import { getCurrentUser, getCurrentTeamGameRecords, getCurrentTeamStats } from '@/lib/storage'
-import type { GameRecord, Team } from '@/types'
+import { TrendingUp, TrendingDown, Minus, Plus, Trophy, Target, Check } from 'lucide-react'
+import { getCurrentUser, getCurrentTeamGameRecords, getCurrentTeamStats, getMatchedTeams, formatTimeAgo } from '@/lib/storage'
+import type { GameRecord, Team, MatchedTeam } from '@/types'
 
 export default function CoachingPage() {
   const router = useRouter()
   const [records, setRecords] = useState<GameRecord[]>([])
   const [currentTeam, setCurrentTeam] = useState<Team | null>(null)
+  const [matchedTeams, setMatchedTeams] = useState<MatchedTeam[]>([])
   const [stats, setStats] = useState({
     totalGames: 0,
     wins: 0,
@@ -39,6 +40,9 @@ export default function CoachingPage() {
 
     // 현재 팀 정보
     setCurrentTeam(user.team || null)
+
+    // 매칭된 팀 정보
+    setMatchedTeams(getMatchedTeams())
 
     // 통계 계산
     const teamStats = getCurrentTeamStats()
@@ -109,6 +113,64 @@ export default function CoachingPage() {
         </header>
 
         <main className="mx-auto max-w-lg px-4 py-6 space-y-6">
+          {/* 매칭된 팀 경기 */}
+          <div>
+            <div className="mb-3 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Check className="h-5 w-5 text-green-500" />
+                <h2 className="font-bold text-foreground">매칭된 팀 경기</h2>
+                <Badge className="bg-green-500/10 text-green-600 text-xs">수락됨</Badge>
+              </div>
+            </div>
+
+            {matchedTeams.length === 0 ? (
+              <Card className="border-border/50">
+                <CardContent className="p-12 text-center">
+                  <p className="text-sm text-muted-foreground">
+                    아직 매칭된 경기가 없습니다
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-3">
+                {matchedTeams.slice(0, 3).map((matched) => (
+                  <Card key={matched.id} className="border-green-500 bg-green-500/5">
+                    <CardContent className="p-4">
+                      <div className="mb-3 flex items-start gap-3">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-green-500/15">
+                          <Check className="h-6 w-6 text-green-600" />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="mb-1 font-bold text-foreground">{matched.matchedTeam.name}</h3>
+                          <div className="flex items-center gap-2">
+                            <Badge variant="secondary" className="text-xs">레벨 {matched.matchedTeam.level}</Badge>
+                            <span className="text-xs text-muted-foreground">{matched.matchedTeam.region}</span>
+                          </div>
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            {formatTimeAgo(matched.matchedAt)}에 매칭됨
+                          </p>
+                        </div>
+                      </div>
+                      <p className="mb-3 text-sm text-muted-foreground">{matched.matchedTeam.description}</p>
+                      <div className="flex gap-2">
+                        <Link href={`/team/${matched.matchedTeam.id}?from=matched`} className="flex-1">
+                          <Button variant="outline" className="w-full hover:bg-green-600! hover:text-white! hover:border-green-600!">
+                            상세 보기
+                          </Button>
+                        </Link>
+                        <Link href="/coaching/create" className="flex-1">
+                          <Button className="w-full bg-green-600 hover:bg-green-700 text-white">
+                            경기 완료하기
+                          </Button>
+                        </Link>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+
           {/* 통계 카드 */}
           <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10">
             <CardContent className="p-6">
