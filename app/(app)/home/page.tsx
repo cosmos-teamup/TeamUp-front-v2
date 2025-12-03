@@ -14,19 +14,14 @@ import type { MatchRequest } from '@/types'
 export default function HomePage() {
   // TODO: 실제로는 API로 팀 보유 여부 체크
   const [hasTeam, setHasTeam] = useState(true) // Mock: 팀 있음 상태로 시작
-  const [teamName, setTeamName] = useState('세종 born')
 
   // 매칭 요청 관련 상태
   const [matchRequests, setMatchRequests] = useState<MatchRequest[]>([])
   const [latestRequest, setLatestRequest] = useState<MatchRequest | null>(null)
 
-  const loadMatchRequests = () => {
-    const requests = getReceivedMatchRequests()
-    setMatchRequests(requests)
-    setLatestRequest(getLatestMatchRequest())
-  }
-
   useEffect(() => {
+    if (typeof window === 'undefined') return
+
     // Mock 데이터 초기화 (개발용)
     // TODO: 테스트 후 아래 주석 해제하여 한 번만 실행되게 변경
     // const hasInitialized = localStorage.getItem('teamup_initialized')
@@ -39,7 +34,13 @@ export default function HomePage() {
     initMockData()
 
     // 매칭 요청 로드
-    loadMatchRequests()
+    const loadData = () => {
+      const requests = getReceivedMatchRequests()
+      setMatchRequests(requests)
+      setLatestRequest(getLatestMatchRequest())
+    }
+
+    loadData()
   }, [])
 
   // 팀 없음 상태
@@ -156,34 +157,6 @@ export default function HomePage() {
               </Card>
             </Link>
           </div>
-        </div>
-
-        {/* 최근 AI 코칭 */}
-        <div className="mb-6">
-          <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-            최근 AI 코칭
-          </h3>
-
-          <Link href="/coaching">
-            <Card className="cursor-pointer border-primary/50 bg-primary/5 transition-all hover:border-primary">
-              <CardContent className="flex items-center gap-3 p-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/20">
-                  <Sparkles className="h-5 w-5 text-primary" />
-                </div>
-                <div className="flex-1">
-                  <div className="mb-1 flex items-center gap-2">
-                    <p className="text-sm font-semibold text-foreground">8월 10일 경기 분석</p>
-                    <Badge className="bg-primary text-xs">
-                      4
-                    </Badge>
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    {teamName} vs 서울 Tigers - 팀워크가 우수하며 빠른 공격 전환이 돋보였습니다
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
         </div>
 
         {/* 최근 알림 */}
