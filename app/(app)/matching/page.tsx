@@ -7,7 +7,7 @@ import { BottomNav } from '@/components/layout/bottom-nav'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Sparkles, Check } from 'lucide-react'
+import { Sparkles, Check, Bot } from 'lucide-react'
 import type { Team, MatchedTeam } from '@/types'
 import { TeamCard } from '@/components/shared/team-card'
 import { mockMatchTeams } from '@/lib/mock-data'
@@ -78,8 +78,8 @@ export default function MatchingPage() {
 
       <main className="mx-auto max-w-lg px-4 py-6">
         {/* AI 추천 안내 */}
-        <div className="mb-4 flex items-center gap-2 rounded-xl bg-primary/10 p-4">
-          <Sparkles className="h-5 w-5 text-primary" />
+        <div className="mb-4 flex items-center gap-2 rounded-xl bg-orange-500/10 p-4 border border-orange-500/20">
+          <Bot className="h-5 w-5 text-orange-500" />
           <div>
             <p className="text-sm font-semibold text-foreground">AI 추천 팀</p>
             <p className="text-xs text-muted-foreground">매칭 점수 기반 정렬</p>

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
-import { ArrowLeft, Trophy, TrendingDown, Minus, Sparkles, Calendar as CalendarIcon } from 'lucide-react'
+import { ArrowLeft, Trophy, TrendingDown, Minus, Sparkles, Calendar as CalendarIcon, Bot } from 'lucide-react'
 import { getCurrentUser, addGameRecord } from '@/lib/storage'
 import { BasketballCourt } from '@/components/features/coaching/basketball-court'
 import { PositionFeedbackModal } from '@/components/features/coaching/position-feedback-modal'
@@ -39,6 +39,40 @@ export default function CreateCoachingPage() {
   const [opponent, setOpponent] = useState('')
   const [gameDate, setGameDate] = useState<Date>(new Date())
   const [result, setResult] = useState<GameResult | null>(null)
+
+  // DNA별 색상 스타일
+  const getDnaStyle = (dna?: string) => {
+    switch (dna) {
+      case 'BULLS':
+        return {
+          bg: 'from-red-500/10 to-red-600/5',
+          border: 'border-red-500/30',
+          icon: 'text-red-600',
+          text: 'text-red-600',
+        }
+      case 'WARRIORS':
+        return {
+          bg: 'from-blue-500/10 to-yellow-500/5',
+          border: 'border-blue-500/30',
+          icon: 'text-blue-600',
+          text: 'text-blue-600',
+        }
+      case 'SPURS':
+        return {
+          bg: 'from-gray-500/10 to-gray-600/5',
+          border: 'border-gray-500/30',
+          icon: 'text-gray-600',
+          text: 'text-gray-600',
+        }
+      default:
+        return {
+          bg: 'from-red-500/10 to-red-600/5',
+          border: 'border-red-500/30',
+          icon: 'text-red-600',
+          text: 'text-red-600',
+        }
+    }
+  }
 
   // 농구 코트 관련 상태
   const [selectedPosition, setSelectedPosition] = useState<number | null>(null)
@@ -126,24 +160,22 @@ export default function CreateCoachingPage() {
       </header>
 
       <main className="mx-auto max-w-lg px-4 py-6 space-y-6">
-        {/* 팀 정보 */}
+        {/* AI 코치 DNA */}
         {currentTeam && (
-          <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/20">
-                  <Trophy className="h-6 w-6 text-primary" />
-                </div>
+          <Card className={`bg-gradient-to-br ${getDnaStyle(currentTeam.teamDna).bg} ${getDnaStyle(currentTeam.teamDna).border}`}>
+            <CardContent className="p-2">
+              <div className="flex items-center gap-2">
+                <Bot className={`h-5 w-5 ${getDnaStyle(currentTeam.teamDna).icon} shrink-0`} />
                 <div>
-                  <p className="font-bold text-foreground">{currentTeam.name}</p>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="secondary" className="text-xs">
-                      {currentTeam.teamDna || 'BULLS'}
-                    </Badge>
-                    <Badge variant="outline" className="text-xs">
-                      Lv.{currentTeam.teamLevel || 1}
-                    </Badge>
-                  </div>
+                  <p className={`text-sm font-bold ${getDnaStyle(currentTeam.teamDna).text}`}>
+                    {currentTeam.teamDna === 'BULLS' && 'Chicago Bulls DNA'}
+                    {currentTeam.teamDna === 'WARRIORS' && 'Golden State Warriors DNA'}
+                    {currentTeam.teamDna === 'SPURS' && 'San Antonio Spurs DNA'}
+                    {!currentTeam.teamDna && 'Chicago Bulls DNA'}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    이 스타일의 AI 코치가 피드백을 제공합니다
+                  </p>
                 </div>
               </div>
             </CardContent>
