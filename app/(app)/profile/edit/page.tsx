@@ -147,6 +147,12 @@ export default function ProfileEditPage() {
                   <option value="PF">파워 포워드 (PF)</option>
                   <option value="C">센터 (C)</option>
                 </select>
+                {/* 카드 색상 안내 */}
+                <div className="rounded-lg bg-muted p-0">
+                  <p className="text-xs text-muted-foreground">
+                    💡 카드 색상은 선택한 주 포지션에 따라 자동으로 변경됩니다
+                  </p>
+                </div>
               </div>
 
               {/* 부 포지션 */}
@@ -209,15 +215,11 @@ export default function ProfileEditPage() {
                   onChange={(e) => setFormData({ ...formData, statusMsg: e.target.value.slice(0, 20) })}
                   placeholder="예: 코트 위의 전사"
                   maxLength={20}
-                  rows={2}
+                  rows={1}
+                  className="resize-none"
                 />
                 <p className="text-xs text-muted-foreground">
                   {formData.statusMsg.length}/20자
-                </p>
-              </div>
-              <div className="rounded-lg bg-muted p-3">
-                <p className="text-xs text-muted-foreground">
-                  💡 카드 색상은 선택한 주 포지션에 따라 자동으로 변경됩니다
                 </p>
               </div>
             </CardContent>

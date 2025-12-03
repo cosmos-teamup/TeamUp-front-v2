@@ -47,7 +47,10 @@ export function RegionSelectModal({ open, onOpenChange, onSelect }: RegionSelect
   }
 
   const handleDongClick = (dong: string) => {
-    const fullAddress = `서울특별시 ${selectedDistrict} ${dong}`
+    // "{구명} 전체" 선택 시 동 이름 제외
+    const fullAddress = dong === `${selectedDistrict} 전체`
+      ? `서울특별시 ${selectedDistrict}`
+      : `서울특별시 ${selectedDistrict} ${dong}`
     onSelect(fullAddress)
     onOpenChange(false)
     // 초기화
@@ -60,7 +63,7 @@ export function RegionSelectModal({ open, onOpenChange, onSelect }: RegionSelect
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl p-0">
         <DialogHeader className="px-6 pt-6 pb-3">
-          <DialogTitle>활동 지역 선택</DialogTitle>
+          <DialogTitle>활동 지역 선택 (서울특별시)</DialogTitle>
         </DialogHeader>
 
         <div className="flex h-[400px]">
@@ -92,15 +95,25 @@ export function RegionSelectModal({ open, onOpenChange, onSelect }: RegionSelect
             </div>
             <div className="overflow-y-auto h-[350px]">
               {selectedDistrict ? (
-                SEOUL_REGIONS[selectedDistrict as keyof typeof SEOUL_REGIONS]?.map((dong) => (
+                <>
+                  {/* "{구명} 전체" 옵션 */}
                   <button
-                    key={dong}
-                    onClick={() => handleDongClick(dong)}
-                    className="w-full px-4 py-3 text-left text-sm hover:bg-muted/50 transition-colors"
+                    onClick={() => handleDongClick(`${selectedDistrict} 전체`)}
+                    className="w-full px-4 py-3 text-left text-sm font-medium hover:bg-muted/50 transition-colors border-b"
                   >
-                    {dong}
+                    {selectedDistrict} 전체
                   </button>
-                ))
+                  {/* 개별 동 목록 */}
+                  {SEOUL_REGIONS[selectedDistrict as keyof typeof SEOUL_REGIONS]?.map((dong) => (
+                    <button
+                      key={dong}
+                      onClick={() => handleDongClick(dong)}
+                      className="w-full px-4 py-3 text-left text-sm hover:bg-muted/50 transition-colors"
+                    >
+                      {dong}
+                    </button>
+                  ))}
+                </>
               ) : (
                 <div className="flex items-center justify-center h-full text-sm text-muted-foreground">
                   구를 선택하세요
