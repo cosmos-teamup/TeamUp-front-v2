@@ -1,6 +1,7 @@
 'use client'
 
 import Image from 'next/image'
+import { POSITION_COLORS } from '@/lib/constants'
 
 interface Position {
   id: number
@@ -13,9 +14,9 @@ interface Position {
 const POSITIONS: Position[] = [
   { id: 1, label: 'Point Guard', shortLabel: 'PG', top: '32%', left: '50%' },
   { id: 2, label: 'Shooting Guard', shortLabel: 'SG', top: '47%', left: '20%' },
-  { id: 3, label: 'Small Forward', shortLabel: 'SF', top: '75%', left: '76%' },
+  { id: 3, label: 'Small Forward', shortLabel: 'SF', top: '79%', left: '78%' },
   { id: 4, label: 'Power Forward', shortLabel: 'PF', top: '70%', left: '26%' },
-  { id: 5, label: 'Center', shortLabel: 'C', top: '62%', left: '62%' },
+  { id: 5, label: 'Center', shortLabel: 'C', top: '62%', left: '70%' },
 ]
 
 interface BasketballCourtProps {
@@ -36,31 +37,40 @@ export function BasketballCourt({ onPositionClick, selectedPosition }: Basketbal
         />
 
         {/* 포지션 버튼들 */}
-        {POSITIONS.map((position) => (
-          <button
-            key={position.id}
-            onClick={() => onPositionClick(position.id, position.shortLabel)}
-            className="absolute -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full bg-white flex flex-col items-center justify-center cursor-pointer transition-all hover:scale-110 active:scale-95"
-            style={{
-              top: position.top,
-              left: position.left,
-              boxShadow: selectedPosition === position.id
-                ? '0 8px 20px rgba(0, 0, 0, 0.3)'
-                : '0 4px 12px rgba(0, 0, 0, 0.15)',
-              background: selectedPosition === position.id ? 'hsl(var(--primary))' : 'white',
-              color: selectedPosition === position.id ? 'white' : '#1b1b1b',
-            }}
-          >
-            <span className="text-lg font-bold leading-none">
-              {position.id}
-            </span>
-            <span className="text-[11px] mt-1 uppercase tracking-wider font-semibold" style={{
-              color: selectedPosition === position.id ? 'white' : '#ff7b32'
-            }}>
-              {position.shortLabel}
-            </span>
-          </button>
-        ))}
+        {POSITIONS.map((position) => {
+          const positionColor = POSITION_COLORS[position.id as keyof typeof POSITION_COLORS]
+          const isSelected = selectedPosition === position.id
+
+          return (
+            <button
+              key={position.id}
+              onClick={() => onPositionClick(position.id, position.shortLabel)}
+              className="absolute -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full flex flex-col items-center justify-center cursor-pointer transition-all hover:scale-110 active:scale-95 border-4"
+              style={{
+                top: position.top,
+                left: position.left,
+                backgroundColor: isSelected ? positionColor.hex : 'white',
+                borderColor: positionColor.hex,
+                color: isSelected ? 'white' : positionColor.hex,
+                boxShadow: isSelected
+                  ? '0 4px 8px rgba(0, 0, 0, 0.2)'
+                  : '0 2px 4px rgba(0, 0, 0, 0.1)',
+              }}
+            >
+              <span className="text-lg font-bold leading-none">
+                {position.id}
+              </span>
+              <span
+                className="text-[11px] mt-1 uppercase tracking-wider font-semibold"
+                style={{
+                  color: isSelected ? 'white' : positionColor.hex,
+                }}
+              >
+                {position.shortLabel}
+              </span>
+            </button>
+          )
+        })}
       </div>
 
       {/* 하단 설명 */}
