@@ -593,14 +593,14 @@ export const initMockData = (): void => {
   const data: AppData = {
     user: {
       id: 'user1',
-      name: '홍길동',
-      email: 'hong@example.com',
+      name: 'KimB',
+      email: 'kimB@example.com',
       team: mockTeams[0], // 첫 번째 팀을 현재 팀으로 설정
       // Player Card 정보
       height: 178,
       position: 'PG',
       playStyle: 'SH',
-      statusMsg: '코트 위의 전사',
+      statusMsg: 'TeamUp 3주 연속 출석 중!',
     },
     teams: mockTeams,
     matchRequests: mockRequests,
