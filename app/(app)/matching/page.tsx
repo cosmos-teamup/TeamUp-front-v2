@@ -14,6 +14,7 @@ import { mockMatchTeams } from '@/lib/mock-data'
 import { getCurrentTeam, getAppData, getMatchedTeams, formatTimeAgo } from '@/lib/storage'
 import { MatchedTeamsModal } from '@/components/shared/matched-teams-modal'
 import { MatchTeamsModal } from '@/components/shared/match-teams-modal'
+import { toast } from 'sonner'
 
 export default function MatchingPage() {
   const [showMatchModal, setShowMatchModal] = useState(false)
@@ -40,11 +41,15 @@ export default function MatchingPage() {
 
   const handleMatchRequest = (team: Team) => {
     if (!isTeamLeader) {
-      alert('팀장만 매칭 요청을 보낼 수 있습니다.')
+      toast.error("권한 없음", {
+        description: "팀장만 매칭 요청을 보낼 수 있습니다.",
+      })
       return
     }
     if (!currentTeam?.isOfficial) {
-      alert('정식 팀(5명 이상)만 매칭 요청을 보낼 수 있습니다.')
+      toast.error("정식 팀 필요", {
+        description: "정식 팀(5명 이상)만 매칭 요청을 보낼 수 있습니다.",
+      })
       return
     }
     setSelectedTeam(team)
@@ -53,7 +58,9 @@ export default function MatchingPage() {
 
   const confirmMatchRequest = () => {
     setShowMatchModal(false)
-    alert(`${selectedTeam?.name}에 매칭 요청을 보냈습니다!`)
+    toast.success("매칭 요청 완료", {
+      description: `${selectedTeam?.name}에 매칭 요청을 보냈습니다!`,
+    })
     // TODO: 실제 API 연동
     // await api.sendMatchRequest(selectedTeam.id, mockMyTeam.id, '경기 한 번 하시죠!')
   }
