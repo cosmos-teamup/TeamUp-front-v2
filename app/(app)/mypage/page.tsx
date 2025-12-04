@@ -20,16 +20,18 @@ import {
   Trash2,
   ChevronRight,
   Edit,
+  Megaphone,
 } from 'lucide-react'
 import { getCurrentUser, getCurrentTeam } from '@/lib/storage'
 import { PlayerCard } from '@/components/shared/PlayerCard'
-import type { User, Team } from '@/types'
+import type { User, Team, Post } from '@/types'
 
 export default function MyPage() {
   const router = useRouter()
   const [notifications, setNotifications] = useState(true)
   const [user, setUser] = useState<User | null>(null)
   const [currentTeam, setCurrentTeam] = useState<Team | null>(null)
+  const [myPosts, setMyPosts] = useState<Post[]>([])
 
   // 클라이언트에서만 데이터 로드 (hydration 오류 방지)
   useEffect(() => {
@@ -37,6 +39,14 @@ export default function MyPage() {
 
     setUser(getCurrentUser())
     setCurrentTeam(getCurrentTeam())
+
+    // 내가 올린 모집 글 불러오기
+    const team = getCurrentTeam()
+    if (team) {
+      const posts = JSON.parse(localStorage.getItem('teamup_posts') || '[]') as Post[]
+      const filteredPosts = posts.filter(post => post.teamId === team.id)
+      setMyPosts(filteredPosts)
+    }
   }, [])
 
   const handleLogout = () => {
@@ -97,6 +107,37 @@ export default function MyPage() {
             className="mx-auto max-w-sm"
           />
         </div>
+
+        {/* 내 활동 */}
+        {currentTeam && (
+          <div className="mb-6">
+            <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+              내 활동
+            </h3>
+            <Card className="border-border/50 bg-card">
+              <CardContent className="p-0">
+                <Link href="/mypage/posts">
+                  <button className="flex w-full items-center justify-between p-4 transition-colors hover:bg-muted/50">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
+                        <Megaphone className="h-5 w-5 text-primary" />
+                      </div>
+                      <div className="text-left">
+                        <span className="font-medium text-foreground">내가 올린 용병 모집 글</span>
+                        {myPosts.length > 0 && (
+                          <p className="text-xs text-muted-foreground">
+                            {myPosts.length}개의 모집 글
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                  </button>
+                </Link>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         {/* 계정 설정 */}
         <div className="mb-6">
