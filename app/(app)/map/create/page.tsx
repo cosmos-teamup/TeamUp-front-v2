@@ -158,7 +158,7 @@ export default function CreatePostPage() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => router.back()}
+            onClick={() => router.push('/map')}
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
@@ -170,6 +170,14 @@ export default function CreatePostPage() {
       </header>
 
       <main className="mx-auto max-w-lg px-4 py-6 space-y-6">
+        {/* 안내 문구 */}
+        <div className="rounded-lg border border-amber-500/50 bg-amber-500/10 p-4">
+          <p className="text-sm font-medium text-amber-600 dark:text-amber-400">
+            작성 후 수정 불가능하니 신중히 작성해주세요.<br />
+            삭제는 마이페이지에서 가능합니다.
+          </p>
+        </div>
+
         {/* 경기 정보 입력 */}
         <>
           {/* 날짜/시간 선택 */}
