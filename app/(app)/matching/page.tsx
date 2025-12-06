@@ -91,12 +91,6 @@ export default function MatchingPage() {
       })
       return
     }
-    if (!currentTeam?.isOfficial) {
-      toast.error("정식 팀 필요", {
-        description: "정식 팀(5명 이상)만 매칭 요청을 보낼 수 있습니다.",
-      })
-      return
-    }
     setSelectedTeam(team)
     setShowMatchModal(true)
   }
@@ -113,7 +107,7 @@ export default function MatchingPage() {
 
       setShowMatchModal(false)
       toast.success("게임 생성 완료", {
-        description: `${selectedTeam.name}와(과)의 경기가 생성되었습니다! (Game ID: ${response.gameId})`,
+        description: `${selectedTeam.name}와(과)의 경기가 생성되었습니다!`,
       })
 
       // localStorage에 매칭된 팀 추가 (UI 표시용)

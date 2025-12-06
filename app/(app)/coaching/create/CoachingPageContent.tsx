@@ -13,7 +13,7 @@ import { CalendarModal } from '@/components/shared/calendar-modal'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import type { GameResult, Team, GameRecord } from '@/types'
-import { coachingService, type FinishGameFeedbackRequest, FEEDBACK_TAG, GAME_RESULT } from '@/lib/services'
+import { coachingService, type FinishGameFeedbackRequest, FEEDBACK_TAG, GAME_RESULT, type FeedbackTag } from '@/lib/services'
 import { toast } from 'sonner'
 
 // TODO: 백엔드 AI API 연동 대기
@@ -31,6 +31,74 @@ function generateMockAIFeedback(
     SPURS: '완벽한 팀워크로 승리했습니다! Spurs의 정신을 제대로 보여줬습니다.',
   }
   return mockFeedbacks[dna as keyof typeof mockFeedbacks] || mockFeedbacks.BULLS
+}
+
+// 포지션별 질문 답변을 FeedbackTag enum으로 매핑하는 함수
+function mapAnswersToFeedbackTags(positionId: number, answers: Record<string, string>): FeedbackTag[] {
+  const tags: FeedbackTag[] = []
+
+  // q1: 오늘 팀의 공격 흐름(볼 움직임/전개)은 어땠나요?
+  if (answers['q1'] === '좋았다') {
+    tags.push(FEEDBACK_TAG.PASS_GOOD)
+  } else if (answers['q1'] === '아쉬웠다') {
+    tags.push(FEEDBACK_TAG.PASS_BAD)
+  }
+
+  // q2: 팀의 수비 로테이션은 전체적으로 어땠나요?
+  if (answers['q2'] === '잘 맞았다') {
+    tags.push(FEEDBACK_TAG.DEFENSE_GOOD)
+  } else if (answers['q2'] === '거의 맞지 않았다') {
+    tags.push(FEEDBACK_TAG.DEFENSE_BAD)
+  }
+
+  // q3: 팀원 간 경기 중 소통(콜/지시/도움 요청)은 어땠나요?
+  if (answers['q3'] === '적극적이었다') {
+    tags.push(FEEDBACK_TAG.TEAMWORK_GOOD)
+  } else if (answers['q3'] === '부족했다') {
+    tags.push(FEEDBACK_TAG.TEAMWORK_BAD)
+  }
+
+  // 포지션별 질문
+  const positionAnswer = answers['position_question']
+  switch (positionId) {
+    case 1: // PG - 팀 전체 패스 템포
+      if (positionAnswer === '좋았다') {
+        tags.push(FEEDBACK_TAG.SPEED_GOOD)
+      } else if (positionAnswer === '많이 느렸다') {
+        tags.push(FEEDBACK_TAG.SPEED_BAD)
+      }
+      break
+    case 2: // SG - 오픈 찬스 창출
+      if (positionAnswer === '잘 만들어졌다') {
+        tags.push(FEEDBACK_TAG.SHOOT_GOOD)
+      } else if (positionAnswer === '거의 없었다') {
+        tags.push(FEEDBACK_TAG.SHOOT_BAD)
+      }
+      break
+    case 3: // SF - 속공 전환 속도
+      if (positionAnswer === '빨랐다') {
+        tags.push(FEEDBACK_TAG.SPEED_GOOD)
+      } else if (positionAnswer === '느렸다') {
+        tags.push(FEEDBACK_TAG.SPEED_BAD)
+      }
+      break
+    case 4: // PF - 리바운드 박스아웃 적극성
+      if (positionAnswer === '적극적') {
+        tags.push(FEEDBACK_TAG.REBOUND_GOOD)
+      } else if (positionAnswer === '부족') {
+        tags.push(FEEDBACK_TAG.REBOUND_BAD)
+      }
+      break
+    case 5: // C - 인사이드 수비 협력
+      if (positionAnswer === '안정적') {
+        tags.push(FEEDBACK_TAG.DEFENSE_GOOD)
+      } else if (positionAnswer === '불안정') {
+        tags.push(FEEDBACK_TAG.DEFENSE_BAD)
+      }
+      break
+  }
+
+  return tags
 }
 
 export default function CoachingPageContent() {
@@ -80,7 +148,7 @@ export default function CoachingPageContent() {
   // 농구 코트 관련 상태
   const [selectedPosition, setSelectedPosition] = useState<number | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [feedbackAnswers, setFeedbackAnswers] = useState<Record<string, string>>({})
+  const [feedbackAnswers, setFeedbackAnswers] = useState<Record<number, Record<string, string>>>({})
 
   // 캘린더 모달 상태
   const [isCalendarOpen, setIsCalendarOpen] = useState(false)
@@ -107,7 +175,12 @@ export default function CoachingPageContent() {
   }
 
   const handleFeedbackSubmit = (answers: Record<string, string>) => {
-    setFeedbackAnswers(answers)
+    if (selectedPosition !== null) {
+      setFeedbackAnswers(prev => ({
+        ...prev,
+        [selectedPosition]: answers
+      }))
+    }
   }
 
   const handleSubmit = async () => {
@@ -126,9 +199,9 @@ export default function CoachingPageContent() {
       const gameId = matchedTeamId ? Number(matchedTeamId) : Date.now()
 
       // 피드백 데이터 준비 (feedbackAnswers를 PositionFeedback 형식으로 변환)
-      const positionFeedbacks = Object.entries(feedbackAnswers).map(([positionNumber, tags]) => ({
+      const positionFeedbacks = Object.entries(feedbackAnswers).map(([positionNumber, answers]) => ({
         positionNumber: Number(positionNumber),
-        tags: tags.split(',').map(t => t.trim() as keyof typeof FEEDBACK_TAG) as any[], // 피드백 태그 배열
+        tags: mapAnswersToFeedbackTags(Number(positionNumber), answers),
       }))
 
       // 게임 종료 및 피드백 제출 API 호출
