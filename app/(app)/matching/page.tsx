@@ -15,6 +15,7 @@ import { getCurrentTeam, getAppData, getMatchedTeams, formatTimeAgo } from '@/li
 import { MatchedTeamsModal } from '@/components/shared/matched-teams-modal'
 import { MatchTeamsModal } from '@/components/shared/match-teams-modal'
 import { toast } from 'sonner'
+import { teamService } from '@/lib/services'
 
 export default function MatchingPage() {
   const [showMatchModal, setShowMatchModal] = useState(false)
@@ -24,20 +25,64 @@ export default function MatchingPage() {
   const [currentTeam, setCurrentTeam] = useState<Team | null>(null)
   const [isTeamLeader, setIsTeamLeader] = useState(false)
   const [matchedTeams, setMatchedTeams] = useState<MatchedTeam[]>([])
+  const [matchTeams, setMatchTeams] = useState<Team[]>([])
+  const [isLoading, setIsLoading] = useState(false)
 
   // 클라이언트에서만 데이터 로드 (hydration 오류 방지)
   useEffect(() => {
     if (typeof window === 'undefined') return
 
-    const team = getCurrentTeam()
-    const appData = getAppData()
-    setCurrentTeam(team)
-    setIsTeamLeader(team && appData.user ? team.captainId === appData.user.id : false)
-    setMatchedTeams(getMatchedTeams())
-  }, [])
+    const loadData = async () => {
+      const team = getCurrentTeam()
+      const appData = getAppData()
+      setCurrentTeam(team)
+      setIsTeamLeader(team && appData.user ? team.captainId === appData.user.id : false)
+      setMatchedTeams(getMatchedTeams())
 
-  // 정식 팀 목록
-  const matchTeams = mockMatchTeams
+      // API에서 매칭 추천 팀 조회
+      if (team?.id) {
+        setIsLoading(true)
+        try {
+          const suggestions = await teamService.getMatchSuggestions(Number(team.id))
+
+          // API 응답을 Team 타입으로 변환
+          const teams: Team[] = suggestions.map(s => ({
+            id: s.teamId.toString(),
+            name: s.name,
+            shortName: s.name.substring(0, 2).toUpperCase(),
+            memberCount: s.memberCount,
+            maxMembers: 10, // API에 없으면 기본값
+            level: 'B', // API에 없으면 기본값
+            region: '서울', // API에 없으면 기본값
+            totalGames: 0,
+            aiReports: 0,
+            activeDays: 0,
+            isOfficial: s.memberCount >= 5,
+            captainId: 'unknown',
+            description: '',
+            matchScore: 0,
+            teamDna: s.teamDna as 'BULLS' | 'WARRIORS' | 'SPURS',
+            teamLevel: s.teamLevel,
+            teamExp: 0,
+          }))
+
+          setMatchTeams(teams)
+        } catch (err) {
+          console.error('매칭 추천 팀 조회 실패:', err)
+          toast.error('추천 팀을 불러오는데 실패했습니다.')
+          // 실패 시 Mock 데이터 사용
+          setMatchTeams(mockMatchTeams)
+        } finally {
+          setIsLoading(false)
+        }
+      } else {
+        // 팀이 없으면 Mock 데이터 사용
+        setMatchTeams(mockMatchTeams)
+      }
+    }
+
+    loadData()
+  }, [])
 
   const handleMatchRequest = (team: Team) => {
     if (!isTeamLeader) {
@@ -56,13 +101,40 @@ export default function MatchingPage() {
     setShowMatchModal(true)
   }
 
-  const confirmMatchRequest = () => {
-    setShowMatchModal(false)
-    toast.success("매칭 요청 완료", {
-      description: `${selectedTeam?.name}에 매칭 요청을 보냈습니다!`,
-    })
-    // TODO: 실제 API 연동
-    // await api.sendMatchRequest(selectedTeam.id, mockMyTeam.id, '경기 한 번 하시죠!')
+  const confirmMatchRequest = async () => {
+    if (!selectedTeam || !currentTeam) return
+
+    try {
+      // 게임 생성 API 호출
+      const response = await teamService.createGame({
+        homeTeamId: Number(currentTeam.id),
+        awayTeamId: Number(selectedTeam.id),
+      })
+
+      setShowMatchModal(false)
+      toast.success("게임 생성 완료", {
+        description: `${selectedTeam.name}와(과)의 경기가 생성되었습니다! (Game ID: ${response.gameId})`,
+      })
+
+      // localStorage에 매칭된 팀 추가 (UI 표시용)
+      const appData = getAppData()
+      appData.matchedTeams = appData.matchedTeams || []
+      appData.matchedTeams.push({
+        id: response.gameId.toString(),
+        myTeamId: currentTeam.id,
+        matchedTeam: selectedTeam,
+        matchedAt: new Date().toISOString(),
+        requestId: response.gameId.toString(), // gameId를 requestId로 사용
+      })
+      localStorage.setItem('teamup_app_data', JSON.stringify(appData))
+      setMatchedTeams(appData.matchedTeams)
+
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : '게임 생성에 실패했습니다.'
+      toast.error('게임 생성 실패', {
+        description: errorMessage,
+      })
+    }
   }
 
   return (
@@ -94,7 +166,17 @@ export default function MatchingPage() {
         </div>
 
         {/* 팀 경기하기 */}
-        {matchTeams.length > 0 && (
+        {isLoading ? (
+          <div className="mb-6 space-y-3">
+            <div className="mb-3 flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-primary" />
+              <h2 className="font-bold text-foreground">팀 경기하기</h2>
+            </div>
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-24 animate-pulse rounded-lg bg-secondary/30" />
+            ))}
+          </div>
+        ) : matchTeams.length > 0 ? (
           <div className="mb-6">
             <div className="mb-3 flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -126,6 +208,10 @@ export default function MatchingPage() {
                 />
               ))}
             </div>
+          </div>
+        ) : (
+          <div className="mb-6 rounded-lg border border-border/50 bg-secondary/10 p-6 text-center">
+            <p className="text-sm text-muted-foreground">추천 팀이 없습니다.</p>
           </div>
         )}
       </main>

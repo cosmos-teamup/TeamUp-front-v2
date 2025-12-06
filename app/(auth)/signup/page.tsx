@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Mail, Clock, User, MapPin, AlertCircle } from 'lucide-react'
 import { UserInfoForm, UserInfoFormData } from '@/components/features/profile/UserInfoForm'
 import { toast } from 'sonner'
+import { authService, type RegisterRequest } from '@/lib/services'
 
 const API_URL = 'http://localhost:8080'
 const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK !== 'false' // 기본값: Mock 사용
@@ -155,35 +156,35 @@ export default function SignupPage() {
       return
     }
 
-    // 실제 API 호출
+    // 실제 API 호출 (authService 사용)
     try {
-      const registerBody = {
+      const registerBody: RegisterRequest = {
         email,
+        password: email, // TODO: 실제로는 비밀번호 입력 받아야 함 (현재는 이메일로 임시 사용)
         nickname: formData.nickname,
         gender: formData.gender,
         address: formData.address,
         height: parseInt(formData.height),
-        mainPosition: formData.mainPosition,
+        position: formData.mainPosition,
         subPosition: formData.subPosition || undefined,
         playStyle: formData.playStyle,
         statusMsg: formData.statusMsg,
       }
 
-      const response = await fetch(`${API_URL}/auth/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(registerBody)
+      const response = await authService.signup(registerBody)
+
+      toast.success('회원가입 완료', {
+        description: `환영합니다, ${response.nickname}님!`,
       })
 
-      if (response.ok) {
-        // 회원가입 성공 - 로그인 페이지로 이동
-        router.push('/login')
-      } else {
-        const errorText = await response.text()
-        setError(errorText || '회원가입에 실패했습니다.')
-      }
+      // 로그인 페이지로 이동
+      router.push('/login')
     } catch (err) {
-      setError('서버와 연결할 수 없습니다.')
+      const errorMessage = err instanceof Error ? err.message : '회원가입에 실패했습니다.'
+      setError(errorMessage)
+      toast.error('회원가입 실패', {
+        description: errorMessage,
+      })
     } finally {
       setIsLoading(false)
     }

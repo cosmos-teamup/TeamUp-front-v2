@@ -8,6 +8,8 @@ import { Badge } from '@/components/ui/badge'
 import { ArrowLeft, Plus, Shield, Zap, Users2 } from 'lucide-react'
 import type { TeamCreationData, TeamDNA } from '@/types'
 import { SEOUL_DISTRICTS, DISTRICT_LIST, formatRegion, type DistrictName } from '@/lib/constants'
+import { teamService, type CreateTeamApiRequest } from '@/lib/services'
+import { toast } from 'sonner'
 
 // 선택 옵션 정의
 const TIME_OPTIONS = [
@@ -151,62 +153,84 @@ export default function CreateTeamPage() {
   const handleSubmit = async () => {
     // 필수 항목 검증
     if (!formData.name || !formData.region || !formData.level) {
-      alert('필수 항목을 모두 입력해주세요!')
+      toast.error('필수 항목을 모두 입력해주세요!')
       return
     }
 
     // 정원 검증
     if (!formData.maxMembers || formData.maxMembers < 2 || formData.maxMembers > 50) {
-      alert('팀 정원은 2명 이상 50명 이하여야 합니다!')
+      toast.error('팀 정원은 2명 이상 50명 이하여야 합니다!')
       return
     }
 
-    // TODO: 실제 백엔드 API 호출
-    // const response = await api.createTeam(formData)
-
-    // Mock: localStorage에 팀 추가 (덮어쓰기 X)
-    const newTeam = {
-      id: Date.now().toString(),
-      name: formData.name,
-      shortName: formData.name.substring(0, 2).toUpperCase(),
-      memberCount: 1,
-      maxMembers: formData.maxMembers || 5,
-      level: formData.level,
-      region: formData.region,
-      totalGames: 0,
-      aiReports: 0,
-      activeDays: 0,
-      isOfficial: false,
-      captainId: 'user1', // TODO: 실제 유저 ID
-      description: formData.description || '', // 비어있으면 빈 문자열
-      matchScore: 0,
-      // AI 매칭용 데이터
-      preferredTime: formData.preferredTime,
-      playStyle: formData.playStyle,
-      gameFrequency: formData.gameFrequency,
-      teamMood: formData.teamMood,
-      travelDistance: formData.travelDistance,
-      // NBA DNA 시스템
-      teamDna: selectedDNA || undefined,
-      teamLevel: 1, // 초기 레벨 1
-      teamExp: 0, // 초기 경험치 0
+    // Team DNA 필수 검증
+    if (!selectedDNA) {
+      toast.error('팀 DNA를 선택해주세요!')
+      return
     }
 
-    // 기존 팀들을 가져와서 추가
-    const existingDataStr = localStorage.getItem('teamup_app_data')
-    let appData = existingDataStr ? JSON.parse(existingDataStr) : {
-      user: { id: 'user1', name: '사용자' },
-      teams: [],
-      matchRequests: []
+    try {
+      // 실제 백엔드 API 호출
+      const userId = 1 // TODO: 실제 로그인된 유저 ID 가져오기
+
+      const createTeamRequest: CreateTeamApiRequest = {
+        name: formData.name,
+        teamDna: selectedDNA,
+        emblemUrl: undefined, // 엠블럼은 나중에 추가
+      }
+
+      const response = await teamService.createTeamApi(userId, createTeamRequest)
+
+      toast.success('팀 생성 완료!', {
+        description: `${response.name} 팀이 생성되었습니다.`,
+      })
+
+      // Mock: localStorage에도 팀 추가 (기존 더미 데이터 호환용)
+      const newTeam = {
+        id: response.id.toString(),
+        name: response.name,
+        shortName: response.name.substring(0, 2).toUpperCase(),
+        memberCount: response.memberCount,
+        maxMembers: formData.maxMembers || 5,
+        level: formData.level,
+        region: formData.region,
+        totalGames: 0,
+        aiReports: 0,
+        activeDays: 0,
+        isOfficial: false,
+        captainId: response.leaderId.toString(),
+        description: formData.description || '',
+        matchScore: 0,
+        preferredTime: formData.preferredTime,
+        playStyle: formData.playStyle,
+        gameFrequency: formData.gameFrequency,
+        teamMood: formData.teamMood,
+        travelDistance: formData.travelDistance,
+        teamDna: response.teamDna,
+        teamLevel: response.teamLevel,
+        teamExp: response.teamExp,
+      }
+
+      const existingDataStr = localStorage.getItem('teamup_app_data')
+      const appData = existingDataStr ? JSON.parse(existingDataStr) : {
+        user: { id: 'user1', name: '사용자' },
+        teams: [],
+        matchRequests: []
+      }
+
+      appData.teams.push(newTeam)
+      appData.user.team = newTeam
+
+      localStorage.setItem('teamup_app_data', JSON.stringify(appData))
+
+      // 성공 모달 표시
+      setShowSuccessModal(true)
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : '팀 생성에 실패했습니다.'
+      toast.error('팀 생성 실패', {
+        description: errorMessage,
+      })
     }
-
-    appData.teams.push(newTeam)
-    appData.user.team = newTeam // 새 팀을 현재 팀으로 설정
-
-    localStorage.setItem('teamup_app_data', JSON.stringify(appData))
-
-    // 성공 모달 표시
-    setShowSuccessModal(true)
   }
 
   return (

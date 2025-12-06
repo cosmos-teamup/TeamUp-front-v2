@@ -13,6 +13,8 @@ import { CalendarModal } from '@/components/shared/calendar-modal'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import type { GameResult, Team, GameRecord } from '@/types'
+import { coachingService, type FinishGameFeedbackRequest, FEEDBACK_TAG, GAME_RESULT } from '@/lib/services'
+import { toast } from 'sonner'
 
 // TODO: 백엔드 AI API 연동 대기
 // 실제로는 POST /api/coaching/feedback { answers, result, teamDNA } 호출
@@ -108,47 +110,76 @@ export default function CoachingPageContent() {
     setFeedbackAnswers(answers)
   }
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!currentTeam || !opponent || !result) {
-      alert('경기 결과를 선택해주세요.')
+      toast.error('경기 결과를 선택해주세요.')
       return
     }
 
     if (Object.keys(feedbackAnswers).length === 0) {
-      alert('농구 코트에서 포지션을 선택하여 피드백을 제출해주세요.')
+      toast.error('농구 코트에서 포지션을 선택하여 피드백을 제출해주세요.')
       return
     }
 
-    // TODO: 백엔드 AI API 호출
-    // const aiComment = await api.generateAIFeedback({ answers: feedbackAnswers, result, teamDNA: currentTeam.teamDna })
+    try {
+      // 게임 ID는 matchedTeamId 또는 임시 생성
+      const gameId = matchedTeamId ? Number(matchedTeamId) : Date.now()
 
-    // Mock AI 피드백 생성
-    const aiComment = generateMockAIFeedback(feedbackAnswers, result, currentTeam.teamDna)
+      // 피드백 데이터 준비 (feedbackAnswers를 PositionFeedback 형식으로 변환)
+      const positionFeedbacks = Object.entries(feedbackAnswers).map(([positionNumber, tags]) => ({
+        positionNumber: Number(positionNumber),
+        tags: tags.split(',').map(t => t.trim() as keyof typeof FEEDBACK_TAG) as any[], // 피드백 태그 배열
+      }))
 
-    // Storage에 저장
-    const newRecord: GameRecord = {
-      id: `rec_${Date.now()}`,
-      teamId: currentTeam.id,
-      teamName: currentTeam.name,
-      opponent,
-      result,
-      feedbackTag: 'TEAMWORK', // 포지션 기반 피드백이므로 TEAMWORK로 통일
-      aiComment,
-      gameDate: format(gameDate, 'yyyy-MM-dd'),
-      createdAt: new Date().toISOString(),
+      // 게임 종료 및 피드백 제출 API 호출
+      const feedbackRequest: FinishGameFeedbackRequest = {
+        teamId: Number(currentTeam.id),
+        result: result as keyof typeof GAME_RESULT,
+        positionFeedbacks,
+      }
+
+      const feedbackResponse = await coachingService.finishGameAndFeedback(gameId, feedbackRequest)
+
+      toast.success('피드백 제출 완료!')
+
+      // AI 리포트 생성 API 호출
+      const reportResponse = await coachingService.createReport(feedbackResponse.gameId, feedbackResponse.teamId)
+
+      toast.success('AI 리포트 생성 완료!', {
+        description: reportResponse.aiComment.substring(0, 50) + '...',
+      })
+
+      // localStorage에도 저장 (UI 표시용)
+      const newRecord: GameRecord = {
+        id: reportResponse.gameId.toString(),
+        teamId: currentTeam.id,
+        teamName: currentTeam.name,
+        opponent,
+        result,
+        feedbackTag: 'TEAMWORK',
+        aiComment: reportResponse.aiComment,
+        gameDate: format(gameDate, 'yyyy-MM-dd'),
+        createdAt: reportResponse.createdAt,
+      }
+
+      addGameRecord(newRecord)
+
+      // 매칭된 팀 경기를 완료한 경우 해당 매칭 제거
+      if (matchedTeamId) {
+        const appData = getAppData()
+        appData.matchedTeams = appData.matchedTeams.filter(m => m.id !== matchedTeamId)
+        setAppData(appData)
+      }
+
+      // 상세 페이지로 이동
+      router.push(`/coaching/${newRecord.id}`)
+
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : '피드백 제출에 실패했습니다.'
+      toast.error('피드백 제출 실패', {
+        description: errorMessage,
+      })
     }
-
-    addGameRecord(newRecord)
-
-    // 매칭된 팀 경기를 완료한 경우 해당 매칭 제거
-    if (matchedTeamId) {
-      const appData = getAppData()
-      appData.matchedTeams = appData.matchedTeams.filter(m => m.id !== matchedTeamId)
-      setAppData(appData)
-    }
-
-    // 상세 페이지로 이동
-    router.push(`/coaching/${newRecord.id}`)
   }
 
   return (
