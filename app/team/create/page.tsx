@@ -284,24 +284,6 @@ export default function CreateTeamPage() {
               />
             </div>
 
-            {/* 팀 설명 */}
-            <div>
-              <label className="mb-2 block text-sm font-semibold text-foreground">
-                팀 설명 <span className="text-xs font-normal text-muted-foreground">(선택)</span>
-                <span className="ml-2 text-xs font-normal text-muted-foreground">
-                  ({(formData.description || '').length}/30자)
-                </span>
-              </label>
-              <input
-                type="text"
-                placeholder="예: 주말 오후에 활동하는 친목 위주 팀입니다."
-                maxLength={30}
-                value={formData.description || ''}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="w-full rounded-lg border border-border bg-secondary/30 px-4 py-3 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-              />
-            </div>
-
             {/* 정원 */}
             <div>
               <label className="mb-2 block text-sm font-semibold text-foreground">

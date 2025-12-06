@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter, useParams, useSearchParams } from 'next/navigation'
-import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -36,15 +35,6 @@ const DNA_INFO: Record<TeamDNA, { name: string; icon: typeof Shield; color: stri
   }
 }
 
-// Mock 팀원 데이터 (실제로는 API에서 가져와야 함)
-const mockTeamMembers = [
-  { name: '김철수', position: 'SF', isLeader: true, kakaoId: 'captain_kim_123' },
-  { name: '이영희', position: 'PG', isLeader: false, kakaoId: 'lee_younghee' },
-  { name: '박민수', position: 'C', isLeader: false, kakaoId: 'park_minsu' },
-  { name: '최지원', position: 'SG', isLeader: false, kakaoId: 'choi_jiwon' },
-  { name: '정태영', position: 'PF', isLeader: false, kakaoId: 'jung_taeyoung' },
-]
-
 export default function TeamDetailPage() {
   const router = useRouter()
   const params = useParams()
@@ -53,14 +43,14 @@ export default function TeamDetailPage() {
   const fromParam = searchParams.get('from') // 'match-request', 'matched', null
 
   const [team, setTeam] = useState<Team | null>(null)
-  const [teamMembers, setTeamMembers] = useState(mockTeamMembers)
+  const [teamMembers, setTeamMembers] = useState<Array<{ name: string; position: string; isLeader: boolean; kakaoId: string }>>([])
   const [loading, setLoading] = useState(true)
   const [copied, setCopied] = useState<string | null>(null)
   const [showTeamSettingsModal, setShowTeamSettingsModal] = useState(false)
   const [showLeaveTeamModal, setShowLeaveTeamModal] = useState(false)
   const [showJoinRequestModal, setShowJoinRequestModal] = useState(false)
   const [showTransferLeaderModal, setShowTransferLeaderModal] = useState(false)
-  const [selectedMember, setSelectedMember] = useState<typeof mockTeamMembers[0] | null>(null)
+  const [selectedMember, setSelectedMember] = useState<{ name: string; position: string; isLeader: boolean; kakaoId: string } | null>(null)
   const [teamName, setTeamName] = useState('')
   const [teamPhoto, setTeamPhoto] = useState('')
   const [teamDna, setTeamDna] = useState<TeamDNA>('BULLS')
@@ -118,6 +108,15 @@ export default function TeamDetailPage() {
           const currentTeamId = appData.user?.team?.id
           setIsTeamMember(currentTeamId === teamId)
           setIsTeamLeader(foundTeam.captainId === appData.user?.id)
+
+          // 팀장 정보로 팀원 목록 생성 (현재는 팀장만 표시)
+          const captain = {
+            name: appData.user?.name || '팀장',
+            position: appData.user?.position || 'SF',
+            isLeader: true,
+            kakaoId: appData.user?.email || 'captain_kakao_id'
+          }
+          setTeamMembers([captain])
         } else {
           toast.error('팀을 찾을 수 없습니다.')
         }
@@ -286,9 +285,9 @@ export default function TeamDetailPage() {
               </div>
             </div>
 
-            {team.description && (
-              <p className="mb-4 text-sm text-muted-foreground">{team.description}</p>
-            )}
+            <p className="mb-4 text-sm text-muted-foreground">
+              {team.description || '팀 소개가 없습니다.'}
+            </p>
 
             {/* Team DNA 상세 정보 */}
             {team.teamDna && DNA_INFO[team.teamDna] && (
@@ -477,8 +476,8 @@ export default function TeamDetailPage() {
           </Card>
         </div>
 
-        {/* 최근 AI 코칭 - 팀 멤버만 볼 수 있음 */}
-        {isTeamMember && (
+        {/* 최근 AI 코칭 - 팀 멤버만 볼 수 있음, 경기 기록이 있을 때만 표시 */}
+        {isTeamMember && team.totalGames > 0 && (
           <div className="mb-6">
             <div className="mb-3 flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-primary" />
@@ -487,32 +486,11 @@ export default function TeamDetailPage() {
 
             <Card className="border-border/50 bg-card">
               <CardContent className="p-4">
-                <div className="mb-3 flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">8월 10일 경기 분석</p>
-                    <p className="text-xs text-muted-foreground">{team.name} vs 서울 Tigers</p>
-                  </div>
-                  <Badge className="bg-primary/10 text-primary">승리</Badge>
+                <div className="text-center py-8">
+                  <Sparkles className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+                  <p className="text-sm text-muted-foreground">아직 AI 코칭 기록이 없습니다.</p>
+                  <p className="text-xs text-muted-foreground mt-1">경기를 진행하면 AI 분석 결과를 받을 수 있습니다.</p>
                 </div>
-
-                <div className="mb-3 space-y-2">
-                  <div className="rounded-lg bg-primary/5 p-3">
-                    <p className="text-sm text-foreground">
-                      <span className="font-semibold text-primary">강점:</span> 팀워크가 우수하며 빠른 공격 전환이 돋보였습니다.
-                    </p>
-                  </div>
-                  <div className="rounded-lg bg-secondary/30 p-3">
-                    <p className="text-sm text-foreground">
-                      <span className="font-semibold text-muted-foreground">개선점:</span> 수비 리바운드 강화가 필요합니다.
-                    </p>
-                  </div>
-                </div>
-
-                <Link href="/coaching">
-                  <Button variant="outline" size="sm" className="w-full">
-                    전체 코칭 보기
-                  </Button>
-                </Link>
               </CardContent>
             </Card>
           </div>
