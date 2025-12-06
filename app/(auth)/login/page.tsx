@@ -85,6 +85,7 @@ export default function LoginPage() {
           height: response.height,
           address: response.address,
           statusMsg: response.statusMsg,
+          team: userTeams.length > 0 ? userTeams[0] : undefined, // 첫 번째 팀을 현재 팀으로 설정
         },
         teams: userTeams,
         matchRequests: [],
