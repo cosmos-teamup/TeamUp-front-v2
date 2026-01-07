@@ -19,12 +19,18 @@ export function MSWProvider({ children }: { children: React.ReactNode }) {
           '⚠️ [MSW] 프로덕션 환경에서 Mock 모드가 활성화되었습니다. 백엔드 API가 준비되면 즉시 비활성화하세요.'
         )
         const initMsw = async () => {
-          const { worker } = await import('@/mocks/browser')
-          await worker.start({
-            onUnhandledRequest: 'bypass',
-          })
-          console.log('[MSW] Mocking enabled in production mode (temporary).')
-          setMswReady(true)
+          try {
+            const { worker } = await import('@/mocks/browser')
+            await worker.start({
+              onUnhandledRequest: 'bypass',
+            })
+            console.log('[MSW] Mocking enabled in production mode (temporary).')
+          } catch (error) {
+            console.error('[MSW] Failed to initialize in production mode:', error)
+            console.warn('[MSW] Falling back to real API. MSW will be disabled.')
+          } finally {
+            setMswReady(true)
+          }
         }
         initMsw()
         return
@@ -43,12 +49,18 @@ export function MSWProvider({ children }: { children: React.ReactNode }) {
     // 개발 환경에서 MSW 활성화
     if (isDevelopment && useMock) {
       const initMsw = async () => {
-        const { worker } = await import('@/mocks/browser')
-        await worker.start({
-          onUnhandledRequest: 'bypass', // MSW가 처리하지 않는 요청은 그대로 통과
-        })
-        console.log('[MSW] Mocking enabled in development mode.')
-        setMswReady(true)
+        try {
+          const { worker } = await import('@/mocks/browser')
+          await worker.start({
+            onUnhandledRequest: 'bypass', // MSW가 처리하지 않는 요청은 그대로 통과
+          })
+          console.log('[MSW] Mocking enabled in development mode.')
+        } catch (error) {
+          console.error('[MSW] Failed to initialize in development mode:', error)
+          console.warn('[MSW] Falling back to real API. MSW will be disabled.')
+        } finally {
+          setMswReady(true)
+        }
       }
       initMsw()
     } else {
