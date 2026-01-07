@@ -10,6 +10,14 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { Switch } from '@/components/ui/switch'
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import {
   User as UserIcon,
   Lock,
   Bell,
@@ -34,6 +42,7 @@ export default function MyPage() {
   const [user, setUser] = useState<User | null>(null)
   const [currentTeam, setCurrentTeam] = useState<Team | null>(null)
   const [myPosts, setMyPosts] = useState<Post[]>([])
+  const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false)
 
   // 클라이언트에서만 데이터 로드 (hydration 오류 방지)
   useEffect(() => {
@@ -87,10 +96,14 @@ export default function MyPage() {
   }
 
   const handleDeleteAccount = () => {
-    // TODO: 회원탈퇴 확인 다이얼로그
-    if (confirm('정말로 탈퇴하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
-      router.push('/')
-    }
+    setShowDeleteAccountModal(true)
+  }
+
+  const confirmDeleteAccount = () => {
+    // TODO: 실제 회원탈퇴 API 호출
+    setShowDeleteAccountModal(false)
+    toast.success('회원탈퇴가 완료되었습니다.')
+    router.push('/')
   }
 
   if (isLoading) {
@@ -284,6 +297,38 @@ export default function MyPage() {
           </div>
         </div>
       </main>
+
+      {/* 회원탈퇴 확인 다이얼로그 */}
+      <Dialog open={showDeleteAccountModal} onOpenChange={setShowDeleteAccountModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10 mx-auto">
+              <Trash2 className="h-6 w-6 text-destructive" />
+            </div>
+            <DialogTitle className="text-center text-xl">회원탈퇴</DialogTitle>
+            <DialogDescription className="text-center">
+              정말로 탈퇴하시겠습니까?<br />
+              <span className="font-semibold text-destructive">이 작업은 되돌릴 수 없습니다.</span>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-2 mt-4">
+            <Button
+              variant="destructive"
+              className="w-full"
+              onClick={confirmDeleteAccount}
+            >
+              탈퇴하기
+            </Button>
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => setShowDeleteAccountModal(false)}
+            >
+              취소
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <BottomNav />
     </div>
